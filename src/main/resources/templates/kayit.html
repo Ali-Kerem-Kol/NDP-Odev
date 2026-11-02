@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Hesap oluştur')}"></head>
+<body>
+<div class="oturum">
+    <aside class="oturum-tanitim">
+        <a th:replace="~{fragments/sablon :: marka}"></a>
+        <div class="yigin-genis">
+            <h2>Bir kez kaydolun, her randevuda zaman kazanın.</h2>
+            <ul role="list" class="oturum-maddeleri">
+                <li><svg th:replace="~{fragments/sablon :: ikon('takvim')}"></svg><span>Doktorların iki haftalık boş saatlerini aynı ekranda görün.</span></li>
+                <li><svg th:replace="~{fragments/sablon :: ikon('basari')}"></svg><span>Randevu onaylandığında Randevularım sayfasında hemen görünür.</span></li>
+                <li><svg th:replace="~{fragments/sablon :: ikon('kalkan')}"></svg><span>T.C. Kimlik No'nuz yalnızca giriş için kullanılır ve ekranlarda maskelenir.</span></li>
+            </ul>
+        </div>
+        <p class="metin-kucuk">Acil durumlarda 112'yi arayın.</p>
+    </aside>
+
+    <main class="oturum-form-alani" id="icerik">
+        <div class="mobil-marka"><a th:replace="~{fragments/sablon :: marka}"></a></div>
+        <div class="oturum-form oturum-form-genis">
+            <div class="yigin-sik">
+                <h1>Hesap oluştur</h1>
+                <p class="giris-metni">Hasta hesabı açmak bir dakika sürer.</p>
+            </div>
+
+            <form th:action="@{/kayit}" th:object="${form}" method="post" class="yigin" novalidate>
+                <div th:if="${#fields.hasGlobalErrors()}" class="bildirim bildirim-hata" role="alert">
+                    <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                    <span class="bildirim-metin" th:each="h : ${#fields.globalErrors()}" th:text="${h}"></span>
+                </div>
+
+                <div class="form-izgara form-izgara-2">
+                    <div class="alan tam-genislik">
+                        <label class="etiket" for="tcKimlikNo">T.C. Kimlik No</label>
+                        <input class="girdi sayilar" th:field="*{tcKimlikNo}" inputmode="numeric" maxlength="11" autocomplete="off"
+                               aria-describedby="tc-ipucu" th:attr="aria-invalid=${#fields.hasErrors('tcKimlikNo')} ? 'true' : null">
+                        <span class="alan-ipucu" id="tc-ipucu">Giriş yaparken bu numarayı kullanacaksınız.</span>
+                        <span class="alan-hata" th:if="${#fields.hasErrors('tcKimlikNo')}" th:errors="*{tcKimlikNo}"></span>
+                    </div>
+                    <div class="alan tam-genislik">
+                        <label class="etiket" for="adSoyad">Ad soyad</label>
+                        <input class="girdi" th:field="*{adSoyad}" autocomplete="name"
+                               th:attr="aria-invalid=${#fields.hasErrors('adSoyad')} ? 'true' : null">
+                        <span class="alan-hata" th:if="${#fields.hasErrors('adSoyad')}" th:errors="*{adSoyad}"></span>
+                    </div>
+                    <div class="alan">
+                        <label class="etiket" for="dogumTarihi">Doğum tarihi</label>
+                        <input class="girdi" type="date" th:field="*{dogumTarihi}" autocomplete="bday"
+                               th:attr="aria-invalid=${#fields.hasErrors('dogumTarihi')} ? 'true' : null">
+                        <span class="alan-hata" th:if="${#fields.hasErrors('dogumTarihi')}" th:errors="*{dogumTarihi}"></span>
+                    </div>
+                    <div class="alan">
+                        <label class="etiket" for="telefon">Cep telefonu</label>
+                        <input class="girdi" type="tel" th:field="*{telefon}" autocomplete="tel" placeholder="05xx xxx xx xx"
+                               th:attr="aria-invalid=${#fields.hasErrors('telefon')} ? 'true' : null">
+                        <span class="alan-hata" th:if="${#fields.hasErrors('telefon')}" th:errors="*{telefon}"></span>
+                    </div>
+                    <div class="alan tam-genislik">
+                        <label class="etiket" for="eposta">E-posta <span class="istege-bagli">(isteğe bağlı)</span></label>
+                        <input class="girdi" type="email" th:field="*{eposta}" autocomplete="email"
+                               th:attr="aria-invalid=${#fields.hasErrors('eposta')} ? 'true' : null">
+                        <span class="alan-hata" th:if="${#fields.hasErrors('eposta')}" th:errors="*{eposta}"></span>
+                    </div>
+                    <div class="alan">
+                        <label class="etiket" for="sifre">Şifre</label>
+                        <input class="girdi" type="password" th:field="*{sifre}" autocomplete="new-password" aria-describedby="sifre-ipucu"
+                               th:attr="aria-invalid=${#fields.hasErrors('sifre')} ? 'true' : null">
+                        <span class="alan-ipucu" id="sifre-ipucu">En az 8 karakter.</span>
+                        <span class="alan-hata" th:if="${#fields.hasErrors('sifre')}" th:errors="*{sifre}"></span>
+                    </div>
+                    <div class="alan">
+                        <label class="etiket" for="sifreTekrar">Şifre tekrar</label>
+                        <input class="girdi" type="password" th:field="*{sifreTekrar}" autocomplete="new-password"
+                               th:attr="aria-invalid=${#fields.hasErrors('sifreTekrar') or #fields.hasErrors('sifrelerEslesiyor')} ? 'true' : null">
+                        <span class="alan-hata" th:if="${#fields.hasErrors('sifreTekrar')}" th:errors="*{sifreTekrar}"></span>
+                        <span class="alan-hata" th:if="${#fields.hasErrors('sifrelerEslesiyor')}" th:errors="*{sifrelerEslesiyor}"></span>
+                    </div>
+                </div>
+
+                <div class="yigin-sik">
+                    <label class="onay-kutusu">
+                        <input type="checkbox" th:field="*{kvkkOnay}">
+                        <span>Kişisel verilerimin randevu hizmeti kapsamında işlenmesine ilişkin
+                            <a th:href="@{/aydinlatma-metni}" target="_blank" rel="noopener">aydınlatma metnini<span class="gorsel-gizli"> (yeni sekmede açılır)</span></a>
+                            okudum ve onaylıyorum.</span>
+                    </label>
+                    <span class="alan-hata" th:if="${#fields.hasErrors('kvkkOnay')}" th:errors="*{kvkkOnay}"></span>
+                </div>
+
+                <button class="dugme dugme-birincil dugme-lg dugme-tam" type="submit">Hesabımı oluştur</button>
+            </form>
+
+            <p class="ayrac-metin">Zaten hesabınız var mı? <a th:href="@{/giris}">Giriş yapın</a></p>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

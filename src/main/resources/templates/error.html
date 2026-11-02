@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Sayfa açılamadı')}"></head>
+<body>
+<div class="sayfa">
+<th:block th:replace="~{fragments/sablon :: siteUst('hata')}"></th:block>
+<main class="karsilama-ana" id="icerik">
+    <section class="bos-durum" th:switch="${status}">
+        <span class="bos-durum-ikon"><svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg></span>
+        <th:block th:case="403">
+            <h1 class="oncu-baslik">Bu sayfaya erişiminiz yok</h1>
+            <p>Hesabınızın yetkisi bu sayfayı görmeye yetmiyor. Ana sayfadan devam edebilirsiniz.</p>
+        </th:block>
+        <th:block th:case="404">
+            <h1 class="oncu-baslik">Sayfa bulunamadı</h1>
+            <p>Adres değişmiş ya da yanlış yazılmış olabilir.</p>
+        </th:block>
+        <th:block th:case="*">
+            <h1 class="oncu-baslik">Bir şeyler ters gitti</h1>
+            <p>İsteğiniz tamamlanamadı. Birkaç dakika sonra yeniden deneyin.</p>
+        </th:block>
+        <a class="dugme dugme-birincil" th:href="@{/}">Ana sayfaya dön</a>
+    </section>
+</main>
+<footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

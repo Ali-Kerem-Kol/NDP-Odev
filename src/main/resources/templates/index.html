@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Online randevu')}"></head>
+<body>
+<div class="sayfa">
+<th:block th:replace="~{fragments/sablon :: siteUst('ana')}"></th:block>
+
+<main id="icerik" class="karsilama-ana"
+      th:with="siteYoneticisi=${aktifKullanici != null and aktifKullanici.siteAyarlariniDuzenleyebilirMi()},
+               icerikYazari=${aktifKullanici != null and aktifKullanici.icerikYazabilirMi()},
+               randevuAlabilir=${aktifKullanici == null or aktifKullanici.randevuAlabilirMi()}">
+    <!-- Kurum bölümüne inen yönlendirmelerde de görünsün diye ekranın altında yüzer -->
+    <div class="yuzen-bildirim" th:if="${basari != null or hata != null}">
+        <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+    </div>
+
+    <!-- Karşılama: solda metin ve eylem, sağda üç adımda nasıl çalıştığı -->
+    <section class="kahraman" aria-labelledby="kahraman-baslik">
+        <div class="kahraman-metin">
+            <h1 id="kahraman-baslik" th:text="${site.kahramanBaslik}">Başlık</h1>
+            <p th:text="${site.kahramanMetni}">Açıklama</p>
+            <div class="satir">
+                <a th:if="${randevuAlabilir}" class="dugme dugme-birincil dugme-lg" th:href="@{/hasta/randevu-al}">
+                    <svg th:replace="~{fragments/sablon :: ikon('takvim-arti')}"></svg>Randevu al
+                </a>
+                <a th:if="${aktifKullanici != null and aktifKullanici.calismaAlaniEtiketi != null}" class="dugme dugme-lg"
+                   th:classappend="${randevuAlabilir} ? 'dugme-ikincil' : 'dugme-birincil'"
+                   th:href="@{${aktifKullanici.panelYolu}}" th:text="${aktifKullanici.calismaAlaniEtiketi}">Randevularım</a>
+                <button th:if="${siteYoneticisi}" type="button" class="duzenle-dugmesi" data-diyalog-ac="diyalog-karsilama">
+                    <svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg>Karşılama metnini düzenle
+                </button>
+            </div>
+        </div>
+
+        <ol class="adimlar" role="list" aria-label="Nasıl çalışır">
+            <li><span class="adim-no">1</span><div><strong>Hizmeti seçin</strong><span>Kurumu ve almak istediğiniz hizmeti seçin.</span></div></li>
+            <li><span class="adim-no">2</span><div><strong>Boş saate dokunun</strong><span>Doktorların iki haftalık boş saatleri tek ekranda.</span></div></li>
+            <li><span class="adim-no">3</span><div><strong>Onayı bekleyin</strong><span>Onaylanan randevu Randevularım sayfasında görünür.</span></div></li>
+        </ol>
+    </section>
+
+    <!-- Duyurular: solda öne çıkan, sağda son başlıklar -->
+    <section class="bolum" aria-labelledby="duyuru-baslik">
+        <div class="bolum-baslik">
+            <h2 id="duyuru-baslik">Duyurular</h2>
+            <div class="satir">
+                <a th:if="${icerikYazari}" class="duzenle-dugmesi" th:href="@{/icerik/yeni}">
+                    <svg th:replace="~{fragments/sablon :: ikonK('arti')}"></svg>Yeni duyuru</a>
+                <a class="bolum-baglantisi" th:href="@{/haberler}">Tümü<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg></a>
+            </div>
+        </div>
+        <th:block th:if="${onecikan == null and #lists.isEmpty(sonDuyurular)}">
+            <div th:replace="~{fragments/sablon :: bosDurum('not', 'Henüz duyuru yok', 'Yeni duyurular yayımlandığında burada görünecek.')}"></div>
+        </th:block>
+        <div class="duyuru-izgara" th:unless="${onecikan == null and #lists.isEmpty(sonDuyurular)}">
+            <article th:if="${onecikan != null}" class="oncu-haber" aria-labelledby="onecikan-baslik">
+                <span class="kart-ust-etiket">Öne çıkan</span>
+                <h3 id="onecikan-baslik"><a th:href="@{/haberler/{id}(id=${onecikan.id})}" th:text="${onecikan.baslik}"></a></h3>
+                <p th:text="${onecikan.ozet}"></p>
+                <div class="haber-meta">
+                    <span th:text="${onecikan.kaynak}"></span>
+                    <time class="sayilar" th:attr="datetime=${onecikan.yayinZamani}" th:text="${#temporals.format(onecikan.yayinZamani, 'd MMMM yyyy')}"></time>
+                </div>
+            </article>
+            <ul role="list" class="baslik-listesi" th:unless="${#lists.isEmpty(sonDuyurular)}">
+                <li th:each="d : ${sonDuyurular}">
+                    <a th:href="@{/haberler/{id}(id=${d.id})}">
+                        <span class="baslik-listesi-ust">
+                            <span th:text="${d.kategori.etiket}"></span>
+                            <time class="sayilar" th:attr="datetime=${d.yayinZamani}" th:text="${#temporals.format(d.yayinZamani, 'd MMMM')}"></time>
+                        </span>
+                        <span class="baslik-listesi-baslik" th:text="${d.baslik}"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Kurumlar ve bugünkü çalışma saatleri -->
+    <section class="bolum" id="kurumlar" aria-labelledby="kurum-baslik">
+        <div class="bolum-baslik">
+            <h2 id="kurum-baslik">Kurumlar</h2>
+            <button th:if="${siteYoneticisi}" type="button" class="duzenle-dugmesi" data-diyalog-ac="diyalog-kurum">
+                <svg th:replace="~{fragments/sablon :: ikonK('arti')}"></svg>Kurum ekle
+            </button>
+        </div>
+        <th:block th:if="${#lists.isEmpty(kurumlar)}">
+            <div th:replace="~{fragments/sablon :: bosDurum('bina', 'Henüz kurum yok', 'Kurumlar eklendiğinde şubeleri ve çalışma saatleriyle burada listelenir.')}"></div>
+        </th:block>
+        <div class="kurum-kartlari">
+            <article th:each="k : ${kurumlar}" class="kart kurum-karti" th:attr="aria-labelledby='kurum-' + ${k.id}">
+                <div class="kurum-karti-ust">
+                    <span class="secenek-ikon"><svg th:replace="~{fragments/sablon :: ikon('bina')}"></svg></span>
+                    <div class="yigin-sifir">
+                        <h3 th:id="'kurum-' + ${k.id}" th:text="${k.ad}"></h3>
+                        <span class="metin-ikincil metin-kucuk" th:text="${k.tur.etiket} + ' · ' + ${k.subeler.size()} + ' şube'"></span>
+                    </div>
+                    <span th:unless="${k.aktif}" class="rozet rozet-notr kurum-karti-durum">Yayında değil</span>
+                </div>
+                <p th:if="${k.aciklama}" class="metin-ikincil metin-kucuk" th:text="${k.aciklama}"></p>
+                <ul role="list" class="sube-listesi">
+                    <li th:each="s : ${k.subeler}" class="sube-ogesi" th:with="saat=${s.calismaSaati(bugun).orElse(null)}">
+                        <div class="yigin-sifir">
+                            <strong th:text="${s.ad}"></strong>
+                            <span class="metin-ikincil metin-kucuk" th:if="${s.adres}" th:text="${s.adres}"></span>
+                        </div>
+                        <span th:if="${saat != null}" class="sube-saati sayilar" th:text="'Bugün ' + ${saat.acilis} + ' - ' + ${saat.kapanis}"></span>
+                        <span th:if="${saat == null}" class="sube-saati sube-saati-kapali">Bugün kapalı</span>
+                    </li>
+                </ul>
+
+                <!-- Yalnızca sistem yöneticisi: kurumu yöneten hesaplar -->
+                <div th:if="${siteYoneticisi}" class="yonetim-alani" th:with="yoneticiler=${kurumYoneticileri.get(k.id)}">
+                    <div class="yonetim-dugmeleri" role="group" th:attr="aria-label=${k.ad} + ' kurumunu yönet'">
+                        <button type="button" class="duzenle-dugmesi" th:attr="data-diyalog-ac='diyalog-kurum-duzenle-' + ${k.id}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg>Düzenle
+                        </button>
+                        <form th:if="${k.aktif}" th:action="@{/admin/kurum/{id}/yayin(id=${k.id})}" method="post"
+                              data-onay-baslik="Kurumu yayından kaldır" data-onay-dugmesi="Yayından kaldır"
+                              th:attr="data-onay-metni=${k.ad} + ' ana sayfada ve randevu ekranında görünmeyecek, yeni randevu alınamayacak. Mevcut randevular ve geçmiş korunur; istediğiniz zaman yeniden yayına alabilirsiniz.'">
+                            <button type="submit" class="duzenle-dugmesi"><svg th:replace="~{fragments/sablon :: ikonK('kapat')}"></svg>Yayından kaldır</button>
+                        </form>
+                        <form th:unless="${k.aktif}" th:action="@{/admin/kurum/{id}/yayin(id=${k.id})}" method="post">
+                            <button type="submit" class="duzenle-dugmesi"><svg th:replace="~{fragments/sablon :: ikonK('onay')}"></svg>Yayına al</button>
+                        </form>
+                        <form th:action="@{/admin/kurum/{id}/sil(id=${k.id})}" method="post"
+                              data-onay-baslik="Kurumu kalıcı olarak sil" data-onay-dugmesi="Kalıcı olarak sil" data-onay-tehlikeli
+                              th:attr="data-onay-metni=${k.ad} + ', şubeleri, hizmetleri, duyuruları ve yönetici hesaplarıyla birlikte silinecek. Bu işlem geri alınamaz. Randevu geçmişi ya da personeli olan kurum silinmez; onu yayından kaldırın.'">
+                            <button type="submit" class="duzenle-dugmesi duzenle-dugmesi-tehlike"><svg th:replace="~{fragments/sablon :: ikonK('cop')}"></svg>Sil</button>
+                        </form>
+                    </div>
+                    <div class="satir-arasi">
+                        <span class="kart-ust-etiket">Kurum yöneticileri</span>
+                        <button type="button" class="duzenle-dugmesi" data-diyalog-ac="diyalog-yonetici"
+                                data-diyalog-alan="kurumId" th:attr="data-diyalog-deger=${k.id}, data-diyalog-ek=${k.ad}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('arti')}"></svg>Yönetici ekle
+                        </button>
+                    </div>
+                    <ul role="list" class="yonetici-listesi" th:if="${yoneticiler != null}">
+                        <li th:each="y : ${yoneticiler}" th:classappend="${!y.aktif} ? 'yonetici-kapali'">
+                            <span class="avatar avatar-sm" aria-hidden="true" th:text="${y.basHarfler}"></span>
+                            <span class="yigin-sifir">
+                                <strong class="metin-kucuk" th:text="${y.adSoyad}"></strong>
+                                <span class="metin-ikincil metin-kucuk" th:text="${y.aktif} ? ${y.eposta} : ${y.eposta} + ' · hesap kapalı'"></span>
+                            </span>
+                            <form th:if="${y.aktif}" th:action="@{/admin/yonetici/{id}/hesap(id=${y.id})}" method="post"
+                                  data-onay-baslik="Yönetici hesabını kapat" data-onay-dugmesi="Hesabı kapat" data-onay-tehlikeli
+                                  th:attr="data-onay-metni=${y.adSoyad} + ' giriş yapamayacak; açık oturumu da kapanacak. Hesabı daha sonra yeniden açabilirsiniz.'">
+                                <button type="submit" class="metin-dugmesi">Hesabı kapat</button>
+                            </form>
+                            <form th:unless="${y.aktif}" th:action="@{/admin/yonetici/{id}/hesap(id=${y.id})}" method="post">
+                                <button type="submit" class="metin-dugmesi">Hesabı aç</button>
+                            </form>
+                        </li>
+                    </ul>
+                    <p th:if="${yoneticiler == null}" class="metin-ikincil metin-kucuk">Henüz yönetici atanmamış.</p>
+                    <dialog th:replace="~{fragments/sablon :: kurumDuzenleDiyalogu(${k}, @{/admin/kurum/{id}/duzenle(id=${k.id})})}"></dialog>
+                </div>
+
+                <a th:if="${randevuAlabilir}" class="bolum-baglantisi" th:href="@{/hasta/randevu-al(kurumId=${k.id})}">
+                    Bu kurumdan randevu al<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg></a>
+            </article>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+
+<th:block th:if="${aktifKullanici != null and aktifKullanici.siteAyarlariniDuzenleyebilirMi()}">
+    <dialog id="diyalog-karsilama" class="diyalog diyalog-genis" aria-labelledby="diyalog-karsilama-baslik">
+        <form th:action="@{/admin/site/karsilama}" method="post" class="diyalog-icerik">
+            <h2 id="diyalog-karsilama-baslik">Karşılama metni</h2>
+            <p>Ana sayfanın en üstünde, ziyaretçinin ilk gördüğü başlık ve açıklama.</p>
+            <div class="alan">
+                <label class="etiket" for="kahraman-baslik-girdi">Başlık</label>
+                <input class="girdi" id="kahraman-baslik-girdi" name="kahramanBaslik" maxlength="120" required th:value="${site.kahramanBaslik}">
+            </div>
+            <div class="alan">
+                <label class="etiket" for="kahraman-metni-girdi">Açıklama</label>
+                <textarea class="girdi" id="kahraman-metni-girdi" name="kahramanMetni" maxlength="400" rows="4" required th:text="${site.kahramanMetni}"></textarea>
+            </div>
+            <div class="diyalog-eylemleri">
+                <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="diyalog-kurum" class="diyalog diyalog-genis" aria-labelledby="diyalog-kurum-baslik">
+        <form th:action="@{/admin/kurum}" method="post" class="diyalog-icerik">
+            <h2 id="diyalog-kurum-baslik">Yeni kurum</h2>
+            <p>Kurum ilk şubesiyle birlikte oluşturulur; çalışma saatleri, bölümler ve personeli kurum yöneticisi ekler.</p>
+            <div class="alan">
+                <label class="etiket" for="kurum-ad">Kurum adı</label>
+                <input class="girdi" id="kurum-ad" name="ad" maxlength="120" required>
+            </div>
+            <div th:replace="~{fragments/sablon :: secim('tur', 'kurum-tur', 'Kurum türü', 'Tür seçin', ${@secenek.kurumTurleri()}, '', true)}"></div>
+            <div class="alan">
+                <label class="etiket" for="ilk-sube">İlk şube adı</label>
+                <input class="girdi" id="ilk-sube" name="ilkSubeAdi" placeholder="Merkez" maxlength="120" required>
+            </div>
+            <div class="alan">
+                <label class="etiket" for="kurum-aciklama">Açıklama <span class="istege-bagli">(isteğe bağlı)</span></label>
+                <textarea class="girdi" id="kurum-aciklama" name="aciklama" maxlength="500" rows="3"></textarea>
+            </div>
+            <div class="diyalog-eylemleri">
+                <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                <button type="submit" class="dugme dugme-birincil">Kurumu oluştur</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="diyalog-yonetici" class="diyalog" aria-labelledby="diyalog-yonetici-baslik">
+        <form th:action="@{/admin/yonetici}" method="post" class="diyalog-icerik">
+            <h2 id="diyalog-yonetici-baslik">Kurum yöneticisi ekle</h2>
+            <p><span data-diyalog-ek>Kurum</span> için personeli, hizmetleri ve randevuları yönetecek hesap.</p>
+            <input type="hidden" name="kurumId">
+            <div class="alan">
+                <label class="etiket" for="yonetici-ad">Ad soyad</label>
+                <input class="girdi" id="yonetici-ad" name="adSoyad" autocomplete="off" required>
+            </div>
+            <div class="alan">
+                <label class="etiket" for="yonetici-eposta">Kurumsal e-posta</label>
+                <input class="girdi" type="email" id="yonetici-eposta" name="eposta" autocomplete="off" required>
+            </div>
+            <div class="alan">
+                <label class="etiket" for="yonetici-sifre">Geçici şifre</label>
+                <input class="girdi" type="password" id="yonetici-sifre" name="sifre" minlength="8" autocomplete="new-password" required>
+                <span class="alan-ipucu">En az 8 karakter. Yönetici ilk girişten sonra Hesabım sayfasından değiştirebilir.</span>
+            </div>
+            <div class="diyalog-eylemleri">
+                <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                <button type="submit" class="dugme dugme-birincil">Yöneticiyi ekle</button>
+            </div>
+        </form>
+    </dialog>
+</th:block>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

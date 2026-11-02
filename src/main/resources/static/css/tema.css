@@ -1,0 +1,189 @@
+/*
+ * Medora tema token'ları - TEK kaynak.
+ * Tüm sayfalar ve bileşenler yalnızca bu değişkenleri kullanır; hiçbir sayfa kendi rengini,
+ * ölçüsünü veya süresini tanımlamaz. Koyu tema yalnızca anlamsal katmanda değer değiştirir.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Yüzeyler: sıcak beyaz zemin, beyaz kart */
+  --renk-zemin: #f7f6f3;
+  --renk-yuzey: #ffffff;
+  --renk-yuzey-ikincil: #f1efea;
+  --renk-yuzey-vurgulu: #e7f3f0;
+
+  /* Metin: kırık siyah */
+  --renk-metin: #1c1917;
+  --renk-metin-ikincil: #57534e;
+  --renk-metin-uzerinde: #ffffff;
+
+  /* Kenarlar: ince ayraç ve kontrol kenarı */
+  --renk-kenar: #e5e2dc;
+  --renk-kenar-guclu: #85807a;
+
+  /* Tek vurgu rengi: derin turkuaz */
+  --renk-vurgu: #0f766e;
+  --renk-vurgu-hover: #115e59;
+  --renk-vurgu-basili: #134e4a;
+  --renk-vurgu-metin: #0f6b63;
+  --renk-vurgu-yumusak: #e3f2ef;
+
+  /* Geri bildirim */
+  --renk-tehlike: #b42318;
+  --renk-tehlike-hover: #912018;
+  --renk-tehlike-metin: #b42318;
+  --renk-tehlike-yumusak: #fdeceb;
+  --renk-basari-metin: #166534;
+  --renk-basari-yumusak: #e7f4ea;
+  --renk-uyari-metin: #8a4b0b;
+  --renk-uyari-yumusak: #fcf1df;
+  --renk-bilgi-metin: #1e4fb8;
+  --renk-bilgi-yumusak: #e9effc;
+  --renk-notr-metin: #57534e;
+  --renk-notr-yumusak: #efede9;
+
+  --renk-perde: rgba(28, 25, 23, 0.55);
+
+  /* Gölge: çoğu yüzey düz, yalnızca katmanlar gölgeli */
+  --golge-kart: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --golge-katman: 0 18px 40px -12px rgba(28, 25, 23, 0.25), 0 4px 10px -4px rgba(28, 25, 23, 0.1);
+  --odak-halkasi: 0 0 0 2px var(--renk-zemin), 0 0 0 4px var(--renk-vurgu);
+
+  /* Yazı */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --yazi-xs: 0.75rem;
+  --yazi-sm: 0.875rem;
+  --yazi-base: 1rem;
+  --yazi-lg: 1.125rem;
+  --yazi-xl: 1.25rem;
+  --yazi-2xl: 1.5rem;
+  --yazi-3xl: 1.875rem;
+  --yazi-4xl: 2.25rem;
+  --yazi-5xl: 3rem;
+  --yazi-6xl: 3.75rem;
+  --satir-siki: 1.2;
+  --satir-normal: 1.5;
+  --harf-baslik: -0.02em;
+  --kalinlik-normal: 400;
+  --kalinlik-orta: 500;
+  --kalinlik-yari: 600;
+  --kalinlik-kalin: 700;
+
+  /* Boşluk: 4px taban */
+  --bosluk-1: 0.25rem;
+  --bosluk-2: 0.5rem;
+  --bosluk-3: 0.75rem;
+  --bosluk-4: 1rem;
+  --bosluk-5: 1.25rem;
+  --bosluk-6: 1.5rem;
+  --bosluk-8: 2rem;
+  --bosluk-10: 2.5rem;
+  --bosluk-12: 3rem;
+  --bosluk-16: 4rem;
+  --bosluk-20: 5rem;
+
+  /* Köşe, kenar, boyut */
+  --kose-sm: 0.375rem;
+  --kose-md: 0.5rem;
+  --kose-lg: 0.75rem;
+  --kose-xl: 1rem;
+  --kose-tam: 9999px;
+  --kenar-ince: 1px;
+  --kenar-orta: 2px;
+  --kontrol-sm: 2.25rem;
+  --kontrol-md: 2.75rem;
+  --kontrol-lg: 3rem;
+  --ikon-sm: 1rem;
+  --ikon-md: 1.25rem;
+  --ikon-lg: 1.5rem;
+  --avatar-md: 2.5rem;
+  --avatar-lg: 3.5rem;
+  --icerik-azami: 72rem;
+  --okuma-azami: 65ch;
+  --form-azami: 28rem;
+  --saydamlik-pasif: 0.5;
+
+  /* Hareket */
+  --sure-kisa: 120ms;
+  --sure-orta: 200ms;
+  --sure-donus: 700ms;
+  --sure-anlik: 0ms;
+  --egri-cikis: cubic-bezier(0.2, 0, 0, 1);
+  --z-ust-cubuk: 20;
+  --z-cekmece: 40;
+  --z-diyalog: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="acik"]) {
+    color-scheme: dark;
+    --renk-zemin: #121110;
+    --renk-yuzey: #1b1a18;
+    --renk-yuzey-ikincil: #24221f;
+    --renk-yuzey-vurgulu: #12302c;
+    --renk-metin: #f5f4f2;
+    --renk-metin-ikincil: #b1aba4;
+    --renk-kenar: #2f2c29;
+    --renk-kenar-guclu: #7d7770;
+    --renk-vurgu: #0f766e;
+    --renk-vurgu-hover: #115e59;
+    --renk-vurgu-basili: #134e4a;
+    --renk-vurgu-metin: #5eead4;
+    --renk-vurgu-yumusak: #12302c;
+    --renk-tehlike: #c8321f;
+    --renk-tehlike-hover: #dc3b27;
+    --renk-tehlike-metin: #f8877a;
+    --renk-tehlike-yumusak: #3a1714;
+    --renk-basari-metin: #6ee7a0;
+    --renk-basari-yumusak: #14301f;
+    --renk-uyari-metin: #f5c26b;
+    --renk-uyari-yumusak: #36280f;
+    --renk-bilgi-metin: #9cc0ff;
+    --renk-bilgi-yumusak: #172447;
+    --renk-notr-metin: #c9c3bc;
+    --renk-notr-yumusak: #2a2825;
+    --renk-perde: rgba(0, 0, 0, 0.7);
+    --golge-kart: none;
+    --golge-katman: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+  }
+}
+
+:root[data-tema="koyu"] {
+  color-scheme: dark;
+  --renk-zemin: #121110;
+  --renk-yuzey: #1b1a18;
+  --renk-yuzey-ikincil: #24221f;
+  --renk-yuzey-vurgulu: #12302c;
+  --renk-metin: #f5f4f2;
+  --renk-metin-ikincil: #b1aba4;
+  --renk-kenar: #2f2c29;
+  --renk-kenar-guclu: #7d7770;
+  --renk-vurgu: #0f766e;
+  --renk-vurgu-hover: #115e59;
+  --renk-vurgu-basili: #134e4a;
+  --renk-vurgu-metin: #5eead4;
+  --renk-vurgu-yumusak: #12302c;
+  --renk-tehlike: #c8321f;
+  --renk-tehlike-hover: #dc3b27;
+  --renk-tehlike-metin: #f8877a;
+  --renk-tehlike-yumusak: #3a1714;
+  --renk-basari-metin: #6ee7a0;
+  --renk-basari-yumusak: #14301f;
+  --renk-uyari-metin: #f5c26b;
+  --renk-uyari-yumusak: #36280f;
+  --renk-bilgi-metin: #9cc0ff;
+  --renk-bilgi-yumusak: #172447;
+  --renk-notr-metin: #c9c3bc;
+  --renk-notr-yumusak: #2a2825;
+  --renk-perde: rgba(0, 0, 0, 0.7);
+  --golge-kart: none;
+  --golge-katman: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sure-kisa: 0ms;
+    --sure-orta: 0ms;
+  }
+}

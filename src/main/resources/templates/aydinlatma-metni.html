@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Aydınlatma metni')}"></head>
+<body>
+<div class="sayfa">
+<th:block th:replace="~{fragments/sablon :: siteUst('aydinlatma')}"></th:block>
+
+<main id="icerik" class="karsilama-ana">
+    <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+    <article class="makale" aria-labelledby="metin-baslik">
+        <div class="yigin">
+            <span class="kart-ust-etiket">6698 sayılı Kişisel Verilerin Korunması Kanunu</span>
+            <h1 id="metin-baslik">Kişisel verilerin işlenmesine ilişkin aydınlatma metni</h1>
+            <p class="makale-giris">Medora üzerinden randevu aldığınızda hangi bilgilerinizi, ne amaçla işlediğimizi ve bu konudaki haklarınızı açıklıyoruz.</p>
+        </div>
+
+        <div class="makale-govde">
+            <section class="yigin-sik" aria-labelledby="b1">
+                <h2 id="b1" class="haber-baslik">Veri sorumlusu</h2>
+                <p>Randevunuzun ait olduğu sağlık kuruluşu, randevu kapsamında işlenen kişisel verileriniz bakımından veri sorumlusudur. Medora, kurumların randevu süreçlerini yürüten platformdur.</p>
+            </section>
+
+            <section class="yigin-sik" aria-labelledby="b2">
+                <h2 id="b2" class="haber-baslik">İşlenen veriler</h2>
+                <ul class="madde-listesi">
+                    <li><strong>Kimlik:</strong> ad soyad, T.C. Kimlik No, doğum tarihi.</li>
+                    <li><strong>İletişim:</strong> cep telefonu, e-posta adresi.</li>
+                    <li><strong>Randevu:</strong> seçtiğiniz kurum, şube, hizmet, doktor, tarih ve saat; randevu durumu ve geçmişi.</li>
+                    <li><strong>Hasta notu:</strong> randevu alırken isteğe bağlı olarak yazdığınız açıklama. Bu not sağlık bilgisi içerebilir; yalnızca ilgili doktor ve kurum yöneticisi görür.</li>
+                    <li><strong>Hesap güvenliği:</strong> şifreniz geri döndürülemeyecek biçimde özetlenerek saklanır; çalışanlar dahil kimse göremez.</li>
+                </ul>
+            </section>
+
+            <section class="yigin-sik" aria-labelledby="b3">
+                <h2 id="b3" class="haber-baslik">İşleme amaçları</h2>
+                <ul class="madde-listesi">
+                    <li>Randevu oluşturmak, onaylamak, hatırlatmak ve iptal etmek.</li>
+                    <li>Randevu çakışmalarını önlemek ve randevu geçmişinizi tutmak.</li>
+                    <li>Hesabınızı oluşturmak, kimliğinizi doğrulamak ve hesap güvenliğini sağlamak.</li>
+                </ul>
+            </section>
+
+            <section class="yigin-sik" aria-labelledby="b4">
+                <h2 id="b4" class="haber-baslik">Kimlerle paylaşılır?</h2>
+                <p>Randevu bilgileriniz yalnızca randevu aldığınız kurumun ilgili doktoru veya sağlık personeli ve kurum yöneticisiyle paylaşılır. T.C. Kimlik No'nuz personel ekranlarında maskelenerek gösterilir. Verileriniz pazarlama amacıyla üçüncü kişilere aktarılmaz.</p>
+            </section>
+
+            <section class="yigin-sik" aria-labelledby="b5">
+                <h2 id="b5" class="haber-baslik">Haklarınız</h2>
+                <p>Kanunun 11. maddesi uyarınca; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işleme amacını öğrenme, eksik veya yanlış işlenmişse düzeltilmesini ve kanuni şartlar oluştuğunda silinmesini isteme, aktarıldığı kişileri bilme ve zarara uğramanız hâlinde giderilmesini talep etme haklarına sahipsiniz.</p>
+                <p>İletişim bilgilerinizi ve şifrenizi hesabınızdaki <strong>Hesabım</strong> sayfasından kendiniz güncelleyebilirsiniz.</p>
+            </section>
+
+            <section class="yigin-sik" aria-labelledby="b6" th:if="${site.eposta != null or site.telefon != null}">
+                <h2 id="b6" class="haber-baslik">Başvuru</h2>
+                <p>
+                    Haklarınızla ilgili taleplerinizi
+                    <th:block th:if="${site.eposta}"><a th:href="'mailto:' + ${site.eposta}" th:text="${site.eposta}"></a></th:block>
+                    <th:block th:if="${site.eposta != null and site.telefon != null}"> adresine yazarak veya </th:block>
+                    <th:block th:if="${site.eposta != null and site.telefon == null}"> adresine yazarak </th:block>
+                    <th:block th:if="${site.telefon}"><span th:text="${site.telefon}"></span> numaralı hattı arayarak </th:block>
+                    iletebilirsiniz.
+                </p>
+            </section>
+        </div>
+
+        <p class="alan-ipucu">Bu metin, sistemin hangi verileri nasıl kullandığını açıklar. Kurumlar kendi hukuk birimlerinin onayladığı metni yayımlamalıdır.</p>
+    </article>
+</main>
+
+<footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

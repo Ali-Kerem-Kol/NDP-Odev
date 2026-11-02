@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Giriş yap')}"></head>
+<body>
+<div class="oturum">
+    <aside class="oturum-tanitim">
+        <a th:replace="~{fragments/sablon :: marka}"></a>
+        <div class="yigin-genis">
+            <h2>Randevularınız tek bir yerde.</h2>
+            <ul role="list" class="oturum-maddeleri">
+                <li><svg th:replace="~{fragments/sablon :: ikon('kimlik')}"></svg><span>Hastalar T.C. Kimlik No ile giriş yapar.</span></li>
+                <li><svg th:replace="~{fragments/sablon :: ikon('posta')}"></svg><span>Doktorlar, sağlık personeli ve kurum yöneticileri kurumsal e-posta adresini kullanır.</span></li>
+                <li><svg th:replace="~{fragments/sablon :: ikon('kilit')}"></svg><span>Şifreniz şifrelenmiş olarak saklanır; çalışanlar dahil kimse göremez.</span></li>
+            </ul>
+        </div>
+        <p class="metin-kucuk">Acil durumlarda 112'yi arayın.</p>
+    </aside>
+
+    <main class="oturum-form-alani" id="icerik">
+        <div class="mobil-marka"><a th:replace="~{fragments/sablon :: marka}"></a></div>
+        <div class="oturum-form">
+            <div class="yigin-sik">
+                <h1>Giriş yap</h1>
+                <p class="giris-metni">Hesabınızla devam edin.</p>
+            </div>
+
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+            <div th:if="${girisHatasi}" class="bildirim bildirim-hata" role="alert">
+                <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                <span class="bildirim-metin">Bilgiler eşleşmedi. T.C. Kimlik No veya e-posta ile şifrenizi kontrol edin.</span>
+            </div>
+            <div th:if="${kilitDakika != null}" class="bildirim bildirim-uyari" role="alert">
+                <svg th:replace="~{fragments/sablon :: ikon('kilit')}"></svg>
+                <span class="bildirim-metin" th:text="'Çok fazla başarısız giriş denemesi yapıldı. Güvenliğiniz için ' + ${kilitDakika} + ' dakika sonra yeniden deneyin.'"></span>
+            </div>
+            <div th:if="${hesapPasif}" class="bildirim bildirim-uyari" role="alert">
+                <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                <span class="bildirim-metin">Hesabınız kurumunuz tarafından pasifleştirildi. Ayrıntı için kurum yöneticinize başvurun.</span>
+            </div>
+            <div th:if="${cikisYapildi}" class="bildirim bildirim-bilgi" role="status">
+                <svg th:replace="~{fragments/sablon :: ikon('bilgi')}"></svg>
+                <span class="bildirim-metin">Oturumunuz kapatıldı.</span>
+            </div>
+
+            <form th:action="@{/giris}" method="post" class="yigin" novalidate>
+                <div class="alan">
+                    <label class="etiket" for="kimlik">T.C. Kimlik No veya kurumsal e-posta</label>
+                    <input class="girdi" id="kimlik" name="kimlik" autocomplete="username" required autofocus
+                           th:attr="aria-invalid=${girisHatasi or kilitDakika != null} ? 'true' : null">
+                </div>
+                <div class="alan">
+                    <label class="etiket" for="sifre">Şifre</label>
+                    <input class="girdi" type="password" id="sifre" name="sifre" autocomplete="current-password" required
+                           th:attr="aria-invalid=${girisHatasi or kilitDakika != null} ? 'true' : null">
+                </div>
+                <button class="dugme dugme-birincil dugme-lg dugme-tam" type="submit">Giriş yap</button>
+            </form>
+
+            <p class="ayrac-metin">Hesabınız yok mu? <a th:href="@{/kayit}">Hasta kaydı oluşturun</a></p>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(baslik)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${baslik} + ' · Medora'">Medora</title>
+    <meta name="description" content="Medora ile hastane ve kliniklerden online randevu alın.">
+    <link rel="icon" th:href="@{/img/favicon.svg}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/tema.css}">
+    <link rel="stylesheet" th:href="@{/css/uygulama.css}">
+    <link rel="stylesheet" th:href="@{/css/sayfalar.css}">
+    <script th:src="@{/js/tema.js}"></script>
+</head>
+
+<body>
+
+<!-- İkon: lucide sprite'ından -->
+<svg th:fragment="ikon(ad)" class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#' + ${ad}"></use></svg>
+<svg th:fragment="ikonK(ad)" class="ikon ikon-sm" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#' + ${ad}"></use></svg>
+
+<!-- Marka -->
+<a th:fragment="marka" class="marka" th:href="@{/}">
+    <span class="marka-isareti"><svg class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#nabiz'"></use></svg></span>
+    <span>Medora</span>
+</a>
+
+<!--
+  Her sayfanın üst kısmı: bilgi bandı, üst menü, hesap menüsü ve (personel/yönetici sayfalarında) bölüm sekmeleri.
+  aktif: sayfanın anahtarı (ör. 'ana', 'haberler', 'randevu-al', 'randevularim', 'genel', 'calisanlar').
+-->
+<th:block th:fragment="siteUst(aktif)"
+          th:with="k=${aktifKullanici},
+                   siteYoneticisi=${site != null and aktifKullanici != null and aktifKullanici.siteAyarlariniDuzenleyebilirMi()},
+                   calismaBolumu=${aktifKullanici != null and aktifKullanici.calismaSekmesiMi(aktif)}">
+    <a class="atla-baglantisi" href="#icerik">İçeriğe geç</a>
+
+    <div class="bilgi-bandi" th:if="${site != null and site.bilgiBandi != null}" role="note">
+        <svg th:replace="~{fragments/sablon :: ikonK('bilgi')}"></svg>
+        <span th:text="${site.bilgiBandi}"></span>
+        <button th:if="${siteYoneticisi}" type="button" class="duzenle-dugmesi duzenle-dugmesi-ters" data-diyalog-ac="diyalog-bilgi-bandi">
+            <svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg>Düzenle
+        </button>
+    </div>
+
+    <header class="site-ust" data-site-ust>
+        <div class="site-ust-ic">
+            <a class="marka" th:href="@{/}" aria-label="Medora ana sayfa">
+                <span class="marka-isareti"><svg class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#nabiz'"></use></svg></span>
+                <span>Medora</span>
+            </a>
+
+            <!-- Dar ekranda tema düğmesi menüye gizlenmez, her zaman görünür -->
+            <div class="site-ust-mobil">
+                <button type="button" class="dugme dugme-hayalet dugme-ikon tema-dugmesi" data-tema-degistir aria-pressed="false">
+                    <svg class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#ay'"></use></svg>
+                    <span class="gorsel-gizli" data-tema-etiketi>Koyu tema</span>
+                </button>
+                <button type="button" class="dugme dugme-hayalet dugme-ikon" data-site-menu-ac aria-expanded="false" aria-controls="site-menu">
+                    <svg th:replace="~{fragments/sablon :: ikon('menu')}"></svg>
+                    <span class="gorsel-gizli">Menü</span>
+                </button>
+            </div>
+
+            <div class="site-menu" id="site-menu">
+                <nav class="ana-menu" aria-label="Ana menü">
+                    <a th:if="${k == null or k.randevuAlabilirMi()}" th:href="@{/hasta/randevu-al}"
+                       th:attr="aria-current=${aktif == 'randevu-al'} ? 'page' : null">Randevu al</a>
+                    <a th:if="${k != null and k.calismaAlaniEtiketi != null}" th:href="@{${k.panelYolu}}"
+                       th:attr="aria-current=${aktif == 'randevularim' or calismaBolumu} ? 'page' : null"
+                       th:text="${k.calismaAlaniEtiketi}">Randevularım</a>
+                    <a th:href="@{/haberler}" th:attr="aria-current=${aktif == 'haberler'} ? 'page' : null">Duyurular</a>
+                    <a th:href="@{/#kurumlar}">Kurumlar</a>
+                </nav>
+
+                <div class="site-menu-eylem">
+                    <button type="button" class="dugme dugme-hayalet dugme-ikon tema-dugmesi tema-dugmesi-genis" data-tema-degistir aria-pressed="false">
+                        <svg class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#ay'"></use></svg>
+                        <span class="gorsel-gizli" data-tema-etiketi>Koyu tema</span>
+                    </button>
+
+                    <th:block th:if="${k == null}">
+                        <a class="dugme dugme-hayalet" th:href="@{/giris}">Giriş yap</a>
+                        <a class="dugme dugme-birincil" th:href="@{/kayit}">Hesap oluştur</a>
+                    </th:block>
+
+                    <div class="hesap" th:if="${k != null}" data-hesap>
+                        <button type="button" class="hesap-tetik" data-hesap-ac aria-expanded="false" aria-controls="hesap-menusu">
+                            <span class="avatar avatar-sm" aria-hidden="true" th:text="${k.basHarfler}">AD</span>
+                            <span class="hesap-adi" th:text="${#strings.arraySplit(k.adSoyad, ' ')[0]}">Ad</span>
+                            <span class="gorsel-gizli">hesap menüsü</span>
+                            <svg th:replace="~{fragments/sablon :: ikonK('asagi')}"></svg>
+                        </button>
+                        <div class="hesap-menusu" id="hesap-menusu">
+                            <div class="hesap-menusu-ust">
+                                <strong th:text="${k.gorunenAd}">Ad Soyad</strong>
+                                <span th:text="${k.gorunenAd != k.rol.etiket} ? ${k.rol.etiket} : ${k.girisKimligi}">Rol</span>
+                            </div>
+                            <!-- Kısayolları kullanıcı nesnesi verir (getHesapMenusu, her türde farklı) -->
+                            <a th:each="m : ${k.hesapMenusu}" class="hesap-menusu-oge" th:href="@{${m.yol}}">
+                                <svg th:replace="~{fragments/sablon :: ikonK(${m.ikon})}"></svg><span th:text="${m.etiket}"></span></a>
+                            <button th:if="${siteYoneticisi}" type="button" class="hesap-menusu-oge" data-diyalog-ac="diyalog-bilgi-bandi">
+                                <svg th:replace="~{fragments/sablon :: ikonK('bilgi')}"></svg>Site geneli duyuru bandı</button>
+                            <a class="hesap-menusu-oge" th:href="@{/profil}" th:attr="aria-current=${aktif == 'profil'} ? 'page' : null">
+                                <svg th:replace="~{fragments/sablon :: ikonK('kullanici')}"></svg>Hesabım</a>
+                            <form th:action="@{/cikis}" method="post" class="hesap-menusu-cikis">
+                                <button type="submit" class="hesap-menusu-oge"><svg th:replace="~{fragments/sablon :: ikonK('cikis')}"></svg>Çıkış yap</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Çalışma alanı sekmeleri: kurum yöneticisinde kurum yönetimi, doktorda kendi çalışma alanı -->
+        <div class="bolum-menusu" th:if="${calismaBolumu}">
+            <div class="bolum-menusu-ic">
+                <span class="bolum-menusu-baslik" th:text="${k.calismaAlaniBasligi}">Kurum</span>
+                <nav class="sekmeler bolum-sekmeleri" th:attr="aria-label=${k.calismaAlaniEtiketi}">
+                    <a th:each="m : ${k.calismaSekmeleri}" class="sekme" th:href="@{${m.yol}}"
+                       th:attr="aria-current=${aktif == m.anahtar} ? 'page' : null" th:text="${m.etiket}">Sekme</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sistem yöneticisi: bilgi bandı düzenleme -->
+    <dialog th:if="${siteYoneticisi}" id="diyalog-bilgi-bandi" class="diyalog" aria-labelledby="diyalog-bilgi-bandi-baslik">
+        <form th:action="@{/admin/site/bilgi-bandi}" method="post" class="diyalog-icerik">
+            <h2 id="diyalog-bilgi-bandi-baslik">Bilgi bandı</h2>
+            <p>Tüm sayfaların en üstünde görünen tek satırlık duyuru. Yalnızca gerçekten gerektiğinde kullanın.</p>
+            <div class="alan">
+                <label class="etiket" for="bilgi-bandi-metni">Metin</label>
+                <input class="girdi" id="bilgi-bandi-metni" name="bilgiBandi" maxlength="250" th:value="${site.bilgiBandi}">
+                <span class="alan-ipucu">Boş bırakıp kaydederseniz bant gizlenir.</span>
+            </div>
+            <div class="diyalog-eylemleri">
+                <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+            </div>
+        </form>
+    </dialog>
+</th:block>
+
+<!-- Her sayfanın alt bilgisi: iletişim bilgileri site ayarlarından gelir -->
+<footer th:fragment="genelAlt" class="genel-alt"
+        th:with="siteYoneticisi=${site != null and aktifKullanici != null and aktifKullanici.siteAyarlariniDuzenleyebilirMi()},
+                 iletisimVar=${site != null and (site.telefon != null or site.eposta != null or site.adres != null)}">
+    <div class="genel-alt-ic">
+        <div class="genel-alt-satir">
+            <a class="marka marka-kucuk" th:href="@{/}" aria-label="Medora ana sayfa">
+                <span class="marka-isareti"><svg class="ikon" aria-hidden="true" focusable="false"><use th:href="@{/img/ikonlar.svg} + '#nabiz'"></use></svg></span>
+                <span>Medora</span>
+            </a>
+            <nav class="alt-menu" aria-label="Alt menü">
+                <a th:href="@{/haberler}">Duyurular</a>
+                <a th:href="@{/#kurumlar}">Kurumlar</a>
+                <a th:href="@{/aydinlatma-metni}">Aydınlatma metni</a>
+            </nav>
+        </div>
+        <div class="genel-alt-satir genel-alt-ikincil">
+            <address class="alt-iletisim" th:if="${iletisimVar or siteYoneticisi}">
+                <a th:if="${site.telefon}" th:href="'tel:' + ${#strings.replace(site.telefon, ' ', '')}">
+                    <svg th:replace="~{fragments/sablon :: ikonK('telefon')}"></svg><span th:text="${site.telefon}"></span></a>
+                <a th:if="${site.eposta}" th:href="'mailto:' + ${site.eposta}">
+                    <svg th:replace="~{fragments/sablon :: ikonK('posta')}"></svg><span th:text="${site.eposta}"></span></a>
+                <span th:if="${site.adres}"><svg th:replace="~{fragments/sablon :: ikonK('konum')}"></svg><span th:text="${site.adres}"></span></span>
+                <button th:if="${siteYoneticisi}" type="button" class="duzenle-dugmesi" data-diyalog-ac="diyalog-iletisim">
+                    <svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg><span th:text="${iletisimVar} ? 'Düzenle' : 'İletişim bilgisi ekle'"></span>
+                </button>
+            </address>
+            <p>Acil durumda 112'yi arayın · © 2026 Medora</p>
+        </div>
+    </div>
+
+    <!-- Sistem yöneticisi: iletişim bilgileri düzenleme -->
+    <dialog th:if="${siteYoneticisi}" id="diyalog-iletisim" class="diyalog" aria-labelledby="diyalog-iletisim-baslik">
+        <form th:action="@{/admin/site/iletisim}" method="post" class="diyalog-icerik">
+            <h2 id="diyalog-iletisim-baslik">İletişim bilgileri</h2>
+            <p>Her sayfanın alt bilgisinde ve aydınlatma metninde gösterilir.</p>
+            <div class="alan">
+                <label class="etiket" for="iletisim-telefon">Telefon</label>
+                <input class="girdi" type="tel" id="iletisim-telefon" name="telefon" th:value="${site.telefon}">
+            </div>
+            <div class="alan">
+                <label class="etiket" for="iletisim-eposta">E-posta</label>
+                <input class="girdi" type="email" id="iletisim-eposta" name="eposta" th:value="${site.eposta}">
+            </div>
+            <div class="alan">
+                <label class="etiket" for="iletisim-adres">Adres</label>
+                <input class="girdi" id="iletisim-adres" name="adres" th:value="${site.adres}">
+            </div>
+            <div class="diyalog-eylemleri">
+                <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+            </div>
+        </form>
+    </dialog>
+</footer>
+
+<!-- Duyuru/haber satırı; içeriği yönetebilen kişi yalnızca "Düzenle" görür, diğer işlemler haberin kendi sayfasında -->
+<article th:fragment="duyuruSatiri(d)" class="haber-satiri">
+    <div class="haber-ust">
+        <span class="haber-kategori" th:text="${d.kategori.etiket}"></span>
+        <span class="rozet rozet-notr" th:unless="${d.yayinda}">Taslak</span>
+        <span th:text="${d.kaynak}"></span>
+        <time class="sayilar" th:if="${d.yayinZamani}" th:attr="datetime=${d.yayinZamani}"
+              th:text="${#temporals.format(d.yayinZamani, 'd MMMM yyyy')}"></time>
+    </div>
+    <h3 class="haber-baslik"><a th:href="@{/haberler/{id}(id=${d.id})}" th:text="${d.baslik}"></a></h3>
+    <p class="haber-ozet" th:text="${d.ozet}"></p>
+    <div th:if="${aktifKullanici != null and aktifKullanici.icerigiYonetebilirMi(d)}">
+        <a class="duzenle-dugmesi" th:href="@{/icerik/{id}/duzenle(id=${d.id})}"><svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg>Düzenle</a>
+    </div>
+</article>
+
+<!-- İçerik yöneticisine özel düğmeler (haberin kendi sayfasında) -->
+<div th:fragment="duyuruYonetimi(d)" class="yonetim-dugmeleri" role="group" aria-label="İçeriği yönet">
+    <a class="duzenle-dugmesi" th:href="@{/icerik/{id}/duzenle(id=${d.id})}"><svg th:replace="~{fragments/sablon :: ikonK('kalem')}"></svg>Düzenle</a>
+    <form th:action="@{/icerik/{id}/yayin(id=${d.id})}" method="post">
+        <button type="submit" class="duzenle-dugmesi" th:text="${d.yayinda} ? 'Yayından kaldır' : 'Yayımla'"></button>
+    </form>
+    <form th:if="${d.yayinda and aktifKullanici.siteAyarlariniDuzenleyebilirMi()}" th:action="@{/icerik/{id}/one-cikar(id=${d.id})}" method="post">
+        <button type="submit" class="duzenle-dugmesi" th:text="${d.onecikan} ? 'Öne çıkarmayı kaldır' : 'Ana sayfada öne çıkar'"></button>
+    </form>
+    <form th:action="@{/icerik/{id}/sil(id=${d.id})}" method="post"
+          data-onay-baslik="İçeriği sil" data-onay-dugmesi="Sil" data-onay-tehlikeli
+          th:attr="data-onay-metni='“' + ${d.baslik} + '” kalıcı olarak silinecek. Bu işlem geri alınamaz.'">
+        <button type="submit" class="duzenle-dugmesi duzenle-dugmesi-tehlike"><svg th:replace="~{fragments/sablon :: ikonK('cop')}"></svg>Sil</button>
+    </form>
+</div>
+
+<!-- Sayfa üstü bildirimleri -->
+<div th:fragment="mesajlar" class="yigin-sik" th:if="${basari != null or hata != null}">
+    <div th:if="${basari}" class="bildirim bildirim-basari" role="status">
+        <svg th:replace="~{fragments/sablon :: ikon('basari')}"></svg>
+        <span class="bildirim-metin" th:text="${basari}"></span>
+        <button type="button" class="dugme dugme-hayalet bildirim-kapat" data-bildirim-kapat>
+            <svg th:replace="~{fragments/sablon :: ikonK('kapat')}"></svg><span class="gorsel-gizli">Kapat</span>
+        </button>
+    </div>
+    <div th:if="${hata}" class="bildirim bildirim-hata" role="alert">
+        <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+        <span class="bildirim-metin" th:text="${hata}"></span>
+        <button type="button" class="dugme dugme-hayalet bildirim-kapat" data-bildirim-kapat>
+            <svg th:replace="~{fragments/sablon :: ikonK('kapat')}"></svg><span class="gorsel-gizli">Kapat</span>
+        </button>
+    </div>
+</div>
+
+<!-- Durum rozeti: renk + metin, renk tek başına bilgi taşımaz -->
+<span th:fragment="durumRozeti(durum)" class="rozet" th:classappend="'rozet-' + ${durum.renk}" th:text="${durum.etiket}">Durum</span>
+
+<!--
+  Randevu satırı. bakis: 'hasta' (doktoru gösterir), 'calisan' (hastayı gösterir), 'yonetici' (ikisini de).
+  İşlem düğmeleri oturumdaki kullanıcının yetkisine göre görünür.
+-->
+<li th:fragment="randevuSatiri(r, bakis)" class="randevu-satiri">
+    <div class="tarih-blogu" aria-hidden="true">
+        <span class="tarih-blogu-gun" th:text="${#temporals.format(r.baslangic, 'd')}">21</span>
+        <span class="tarih-blogu-ay" th:text="${#temporals.format(r.baslangic, 'MMM')}">Eki</span>
+    </div>
+    <div class="randevu-bilgi">
+        <div class="randevu-bilgi-ust">
+            <span class="randevu-saat sayilar">
+                <span class="gorsel-gizli" th:text="${@tarih.uzunTarih(r.baslangic.toLocalDate())}"></span>
+                <span th:text="${@tarih.tarihEtiketi(r.baslangic.toLocalDate())} + ', ' + ${#temporals.format(r.baslangic, 'HH:mm')} + ' - ' + ${#temporals.format(r.bitis, 'HH:mm')}"></span>
+            </span>
+            <span th:replace="~{fragments/sablon :: durumRozeti(${r.durum})}"></span>
+        </div>
+        <div class="randevu-kisi" th:text="${bakis == 'hasta'} ? ${r.calisan.gorunenAd} : ${r.hasta.adSoyad}">Ad</div>
+        <div class="randevu-meta">
+            <span th:if="${bakis == 'yonetici'}"><svg th:replace="~{fragments/sablon :: ikonK('stetoskop')}"></svg><span th:text="${r.calisan.gorunenAd}"></span></span>
+            <span><svg th:replace="~{fragments/sablon :: ikonK('hizmet')}"></svg><span th:text="${r.hizmet.ad} + ' · ' + ${r.sureDakika} + ' dk'"></span></span>
+            <span><svg th:replace="~{fragments/sablon :: ikonK('konum')}"></svg><span th:text="${bakis == 'hasta'} ? ${r.sube.tamAd} : ${r.sube.ad}"></span></span>
+            <span class="sayilar"><svg th:replace="~{fragments/sablon :: ikonK('ucret')}"></svg><span th:text="${@tarih.para(r.ucret)}"></span></span>
+        </div>
+        <p class="randevu-not" th:if="${r.hastaNotu}" th:text="'Hasta notu: ' + ${r.hastaNotu}"></p>
+        <p class="randevu-not" th:if="${r.durumAciklamasi}" th:text="'Açıklama: ' + ${r.durumAciklamasi}"></p>
+    </div>
+    <div class="randevu-eylemleri">
+        <th:block th:replace="~{fragments/sablon :: randevuEylemleri(${r})}"></th:block>
+        <a class="dugme dugme-hayalet dugme-sm" th:href="@{/randevu/{id}(id=${r.id})}">
+            Ayrıntılar<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg>
+        </a>
+    </div>
+</li>
+
+<!--
+  Seçim kutusu: native select yerine ARIA listbox. Değer gizli alanda tutulur, davranış uygulama.js'te.
+  secenekler: SecenekYardimcisi.Secenek listesi (deger, etiket).
+-->
+<div th:fragment="secim(ad, kimlik, etiket, yerTutucu, secenekler, secili, zorunlu)" class="alan">
+    <span class="etiket" th:id="${kimlik} + '-etiket'" th:text="${etiket}">Etiket</span>
+    <div class="secim" data-secim th:attr="data-zorunlu=${zorunlu} ? 'evet' : null">
+        <input type="hidden" th:name="${ad}" th:value="${secili}">
+        <button type="button" class="secim-tetik" role="combobox" aria-haspopup="listbox" aria-expanded="false"
+                th:attr="aria-controls=${kimlik} + '-liste', aria-labelledby=${kimlik} + '-etiket ' + ${kimlik} + '-deger'">
+            <span class="secim-deger" th:id="${kimlik} + '-deger'" th:attr="data-yer-tutucu=${yerTutucu}" th:text="${yerTutucu}" data-bos></span>
+            <svg th:replace="~{fragments/sablon :: ikonK('asagi')}"></svg>
+        </button>
+        <ul class="secim-liste" role="listbox" th:id="${kimlik} + '-liste'" th:attr="aria-labelledby=${kimlik} + '-etiket'" hidden>
+            <li th:each="s : ${secenekler}" class="secim-secenek" role="option" aria-selected="false" th:attr="data-deger=${s.deger}, data-etiket=${s.etiket}">
+                <span th:text="${s.etiket}"></span>
+                <svg th:replace="~{fragments/sablon :: ikonK('onay')}"></svg>
+            </li>
+        </ul>
+    </div>
+    <span class="alan-hata" data-secim-hata hidden th:text="${yerTutucu} + '.'"></span>
+</div>
+
+<!-- Randevu işlem düğmeleri: yalnızca oturumdaki kullanıcının yetkili olduğu ve durumun izin verdiği işlemler görünür -->
+<th:block th:fragment="randevuEylemleri(r)"
+          th:with="yonetebilir=${aktifKullanici.randevuyuYonetebilirMi(r)}, iptalEdebilir=${r.iptalEdilebilir and aktifKullanici.randevuyuIptalEdebilirMi(r)}">
+    <form th:if="${yonetebilir and r.onaylanabilir}" th:action="@{/randevu/{id}/onayla(id=${r.id})}" method="post">
+        <button type="submit" class="dugme dugme-birincil dugme-sm"><svg th:replace="~{fragments/sablon :: ikonK('onay')}"></svg>Onayla</button>
+    </form>
+    <form th:if="${yonetebilir and r.onaylanabilir}" th:action="@{/randevu/{id}/reddet(id=${r.id})}" method="post"
+          data-onay-baslik="Randevu talebini reddet" data-onay-metni="Hasta, randevusunun reddedildiğini Randevularım sayfasında görecek."
+          data-onay-dugmesi="Reddet" data-onay-neden data-onay-tehlikeli>
+        <input type="hidden" name="neden" value="">
+        <button type="submit" class="dugme dugme-tehlike-cizgi dugme-sm">Reddet</button>
+    </form>
+    <form th:if="${yonetebilir and r.tamamlanabilir}" th:action="@{/randevu/{id}/tamamla(id=${r.id})}" method="post">
+        <button type="submit" class="dugme dugme-ikincil dugme-sm"><svg th:replace="~{fragments/sablon :: ikonK('basari')}"></svg>Geldi, tamamlandı</button>
+    </form>
+    <form th:if="${yonetebilir and r.gelmediIsaretlenebilir}" th:action="@{/randevu/{id}/gelmedi(id=${r.id})}" method="post"
+          data-onay-baslik="Hasta gelmedi" data-onay-metni="Randevu gelinmedi olarak kapanacak ve hastanın geçmişinde görünecek."
+          data-onay-dugmesi="Gelmedi olarak işaretle" data-onay-tehlikeli>
+        <button type="submit" class="dugme dugme-tehlike-cizgi dugme-sm">Gelmedi</button>
+    </form>
+    <form th:if="${iptalEdebilir}" th:action="@{/randevu/{id}/iptal(id=${r.id})}" method="post"
+          data-onay-baslik="Randevuyu iptal et" data-onay-metni="Bu işlem geri alınamaz. Saat başka hastalar için açılacak."
+          data-onay-dugmesi="İptal et" data-onay-neden data-onay-tehlikeli>
+        <input type="hidden" name="neden" value="">
+        <button type="submit" class="dugme dugme-tehlike-cizgi dugme-sm">İptal et</button>
+    </form>
+</th:block>
+
+<!-- Boş durum -->
+<div th:fragment="bosDurum(ikonAdi, baslik, metin)" class="bos-durum">
+    <span class="bos-durum-ikon"><svg th:replace="~{fragments/sablon :: ikon(${ikonAdi})}"></svg></span>
+    <h3 th:text="${baslik}"></h3>
+    <p th:text="${metin}"></p>
+</div>
+
+<!-- Haftalık çalışma saatleri yönetimi (çalışanın kendisi ve yönetici kullanır) -->
+<div th:fragment="uygunlukYonetimi(calisan, islemAdresi)" class="izgara izgara-yan">
+    <section class="kart" aria-labelledby="haftalik-plan">
+        <div class="kart-baslik">
+            <h2 id="haftalik-plan">Haftalık plan</h2>
+            <span class="kart-ust-etiket" th:text="${calisan.uygunluklar.size()} + ' zaman dilimi'"></span>
+        </div>
+        <th:block th:if="${#lists.isEmpty(calisan.uygunluklar)}"><div th:replace="~{fragments/sablon :: bosDurum('saat', 'Henüz çalışma saati yok', 'Saat ekleyene kadar hastalar bu takvimden randevu alamaz.')}"></div></th:block>
+        <ul role="list" class="randevu-listesi" th:unless="${#lists.isEmpty(calisan.uygunluklar)}">
+            <li class="randevu-satiri" th:each="g : ${@tarih.gunler()}" th:if="${!calisan.gunlukUygunluklar(g).isEmpty()}" th:with="dilimler=${calisan.gunlukUygunluklar(g)}">
+                <div class="tarih-blogu" aria-hidden="true">
+                    <span class="tarih-blogu-ay" th:text="${@tarih.kisaGunAdi(g)}"></span>
+                </div>
+                <div class="randevu-bilgi">
+                    <strong th:text="${@tarih.gunAdi(g)}"></strong>
+                    <div class="satir">
+                        <form th:each="d : ${dilimler}" method="post"
+                              th:action="@{__${islemAdresi}__/{dilimId}/sil(dilimId=${d.id})}"
+                              data-onay-baslik="Zaman dilimini kaldır" data-onay-tehlikeli data-onay-dugmesi="Kaldır"
+                              th:attr="data-onay-metni=${d.aciklama} + ' kaldırılacak. Mevcut randevular etkilenmez.'">
+                            <button type="submit" class="dugme dugme-ikincil dugme-sm sayilar">
+                                <span th:text="${d.baslangic} + ' - ' + ${d.bitis}"></span>
+                                <svg th:replace="~{fragments/sablon :: ikonK('kapat')}"></svg>
+                                <span class="gorsel-gizli">kaldır</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </section>
+    <section class="kart" aria-labelledby="dilim-ekle">
+        <div class="kart-baslik"><h2 id="dilim-ekle">Saat ekle</h2></div>
+        <form th:action="@{__${islemAdresi}__}" method="post" class="yigin">
+            <fieldset class="yigin-sik">
+                <legend class="etiket">Gün</legend>
+                <div class="segment">
+                    <th:block th:each="g, d : ${@tarih.gunler()}">
+                        <input type="radio" name="gun" th:id="'gun-' + ${g}" th:value="${g}" th:checked="${d.first}" required>
+                        <label th:for="'gun-' + ${g}" th:text="${@tarih.kisaGunAdi(g)}" th:title="${@tarih.gunAdi(g)}"></label>
+                    </th:block>
+                </div>
+            </fieldset>
+            <div class="form-izgara form-izgara-2">
+                <div class="alan">
+                    <label class="etiket" for="dilim-baslangic">Başlangıç</label>
+                    <input class="girdi" type="time" id="dilim-baslangic" name="baslangic" value="09:00" step="300" required>
+                </div>
+                <div class="alan">
+                    <label class="etiket" for="dilim-bitis">Bitiş</label>
+                    <input class="girdi" type="time" id="dilim-bitis" name="bitis" value="12:00" step="300" required>
+                </div>
+            </div>
+            <p class="alan-ipucu">Öğle arası için sabah ve öğleden sonrayı ayrı dilim olarak ekleyin.</p>
+            <button type="submit" class="dugme dugme-birincil"><svg th:replace="~{fragments/sablon :: ikon('arti')}"></svg>Ekle</button>
+        </form>
+    </section>
+</div>
+
+<!-- Kurum bilgileri (ad, tür, tanıtım): sistem yöneticisi ana sayfadan, kurum yöneticisi kendi panelinden açar -->
+<dialog th:fragment="kurumDuzenleDiyalogu(k, islemAdresi)" th:id="'diyalog-kurum-duzenle-' + ${k.id}" class="diyalog diyalog-genis"
+        th:attr="aria-labelledby='diyalog-kurum-duzenle-baslik-' + ${k.id}">
+    <form th:action="${islemAdresi}" method="post" class="diyalog-icerik">
+        <h2 th:id="'diyalog-kurum-duzenle-baslik-' + ${k.id}">Kurum bilgileri</h2>
+        <div class="alan">
+            <label class="etiket" th:for="'kurum-ad-' + ${k.id}">Kurum adı</label>
+            <input class="girdi" th:id="'kurum-ad-' + ${k.id}" name="ad" maxlength="120" required th:value="${k.ad}">
+        </div>
+        <div th:replace="~{fragments/sablon :: secim('tur', 'kurum-tur-' + ${k.id}, 'Kurum türü', 'Tür seçin', ${@secenek.kurumTurleri()}, ${k.tur.name()}, true)}"></div>
+        <div class="alan">
+            <label class="etiket" th:for="'kurum-aciklama-' + ${k.id}">Kısa tanıtım <span class="istege-bagli">(isteğe bağlı)</span></label>
+            <textarea class="girdi" th:id="'kurum-aciklama-' + ${k.id}" name="aciklama" maxlength="500" rows="3" th:text="${k.aciklama}"></textarea>
+            <span class="alan-ipucu">Ana sayfadaki kurum kartında görünür. Tek cümle yeterli.</span>
+        </div>
+        <div class="diyalog-eylemleri">
+            <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+            <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Onay diyaloğu (iptal, reddet, kaldır gibi işlemler için tek ortak diyalog) -->
+<dialog th:fragment="onayDiyalogu" id="onay-diyalogu" class="diyalog" aria-labelledby="onay-diyalogu-baslik" aria-describedby="onay-diyalogu-metin">
+    <div class="diyalog-icerik">
+        <h2 id="onay-diyalogu-baslik" data-diyalog-baslik>Emin misiniz?</h2>
+        <p id="onay-diyalogu-metin" data-diyalog-metin></p>
+        <div class="alan" data-diyalog-neden hidden>
+            <label class="etiket" for="onay-diyalogu-neden">Neden <span class="istege-bagli">(isteğe bağlı)</span></label>
+            <textarea id="onay-diyalogu-neden" class="girdi" maxlength="500"></textarea>
+        </div>
+        <div class="diyalog-eylemleri">
+            <button type="button" class="dugme dugme-ikincil" data-diyalog-vazgec>Vazgeç</button>
+            <button type="button" class="dugme dugme-birincil" data-diyalog-onayla>Onayla</button>
+        </div>
+    </div>
+</dialog>
+
+<th:block th:fragment="scriptler">
+    <script th:src="@{/js/uygulama.js}"></script>
+</th:block>
+
+</body>
+</html>
