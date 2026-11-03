@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Randevularım')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('randevularim')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <h1>Randevularım</h1>
+                <a class="dugme dugme-birincil" th:href="@{/hasta/randevu-al}">
+                    <svg th:replace="~{fragments/sablon :: ikon('takvim-arti')}"></svg>Randevu al
+                </a>
+            </div>
+
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <!-- Öncü: sıradaki randevu -->
+            <section th:if="${siradaki != null}" class="oncu oncu-vurgulu oncu-yatay" aria-labelledby="siradaki-baslik"
+                     th:with="r=${siradaki}">
+                <div class="yigin">
+                    <div class="satir">
+                        <span class="kart-ust-etiket" id="siradaki-baslik">Sıradaki randevunuz</span>
+                        <span th:replace="~{fragments/sablon :: durumRozeti(${r.durum})}"></span>
+                    </div>
+                    <p class="oncu-deger sayilar"
+                       th:text="${@tarih.tarihEtiketi(r.baslangic.toLocalDate())} + ', ' + ${#temporals.format(r.baslangic, 'HH:mm')}">Yarın, 10:00</p>
+                    <div class="oncu-detaylar">
+                        <div><svg th:replace="~{fragments/sablon :: ikon('takvim')}"></svg>
+                            <span th:text="${@tarih.uzunTarih(r.baslangic.toLocalDate())} + ' · ' + ${r.sureDakika} + ' dakika'"></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('stetoskop')}"></svg>
+                            <span><strong th:text="${r.calisan.gorunenAd}"></strong> <span class="metin-ikincil" th:text="${r.calisan.unvan}"></span></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('hizmet')}"></svg>
+                            <span th:text="${r.hizmet.ad} + ' · ' + ${@tarih.para(r.ucret)}"></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('konum')}"></svg>
+                            <span th:text="${r.sube.tamAd} + (${r.sube.adres != null} ? ' · ' + ${r.sube.adres} : '')"></span></div>
+                    </div>
+                </div>
+                <form th:if="${r.iptalEdilebilir and aktifKullanici.randevuyuIptalEdebilirMi(r)}"
+                      th:action="@{/randevu/{id}/iptal(id=${r.id})}" method="post"
+                      data-onay-baslik="Randevuyu iptal et" data-onay-metni="Bu işlem geri alınamaz. Saat başka hastalar için açılacak."
+                      data-onay-dugmesi="İptal et" data-onay-neden data-onay-tehlikeli>
+                    <input type="hidden" name="neden" value="">
+                    <button type="submit" class="dugme dugme-tehlike-cizgi">Randevuyu iptal et</button>
+                </form>
+            </section>
+
+            <section th:if="${siradaki == null}" class="oncu" aria-labelledby="bos-baslik">
+                <div class="bos-durum">
+                    <span class="bos-durum-ikon"><svg th:replace="~{fragments/sablon :: ikon('takvim')}"></svg></span>
+                    <h2 id="bos-baslik" class="oncu-baslik">Yaklaşan randevunuz yok</h2>
+                    <p>Hizmeti seçin, doktorların boş saatlerini görün ve size uyan saate randevu talebi bırakın.</p>
+                    <a class="dugme dugme-birincil dugme-lg" th:href="@{/hasta/randevu-al}">
+                        <svg th:replace="~{fragments/sablon :: ikon('takvim-arti')}"></svg>Randevu al
+                    </a>
+                </div>
+            </section>
+
+            <section class="kart" th:unless="${#lists.isEmpty(digerYaklasanlar)}" aria-labelledby="yaklasan-baslik">
+                <div class="kart-baslik">
+                    <h2 id="yaklasan-baslik">Diğer yaklaşan randevular</h2>
+                    <span class="kart-ust-etiket" th:text="${digerYaklasanlar.size()} + ' randevu'"></span>
+                </div>
+                <ul role="list" class="randevu-listesi">
+                    <th:block th:each="r : ${digerYaklasanlar}"><li th:replace="~{fragments/sablon :: randevuSatiri(${r}, 'hasta')}"></li></th:block>
+                </ul>
+            </section>
+
+            <section class="kart" aria-labelledby="gecmis-baslik">
+                <div class="kart-baslik">
+                    <h2 id="gecmis-baslik">Geçmiş ve kapanan randevular</h2>
+                </div>
+                <th:block th:if="${#lists.isEmpty(gecmis)}"><div th:replace="~{fragments/sablon :: bosDurum('liste', 'Henüz kayıt yok', 'Tamamlanan, iptal edilen ve reddedilen randevularınız burada listelenir.')}"></div></th:block>
+                <ul role="list" class="randevu-listesi" th:unless="${#lists.isEmpty(gecmis)}">
+                    <th:block th:each="r : ${gecmis}"><li th:replace="~{fragments/sablon :: randevuSatiri(${r}, 'hasta')}"></li></th:block>
+                </ul>
+            </section>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

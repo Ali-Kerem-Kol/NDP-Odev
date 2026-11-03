@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Randevu ayrıntıları')}"></head>
+<body>
+<div class="sayfa" th:with="r=${randevu}, personelMi=${aktifKullanici.randevuyuYonetebilirMi(randevu)}">
+    <th:block th:replace="~{fragments/sablon :: siteUst(${menuAnahtari})}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <a class="geri-baglantisi" th:href="@{${aktifKullanici.panelYolu}}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Randevulara dön
+            </a>
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <div class="satir">
+                        <span th:replace="~{fragments/sablon :: durumRozeti(${r.durum})}"></span>
+                        <span class="rozet rozet-bilgi" th:if="${r.suAnda}">Şu anda</span>
+                    </div>
+                    <h1 th:text="${r.hizmet.ad}">Hizmet</h1>
+                    <p class="sayilar"
+                       th:text="${@tarih.uzunTarih(r.baslangic.toLocalDate())} + ' · ' + ${#temporals.format(r.baslangic, 'HH:mm')} + ' - ' + ${#temporals.format(r.bitis, 'HH:mm')}"></p>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <div class="izgara izgara-yan">
+                <div class="yigin-genis">
+                    <section class="kart" aria-labelledby="bilgi-baslik">
+                        <div class="kart-baslik"><h2 id="bilgi-baslik">Randevu bilgileri</h2></div>
+                        <dl class="bilgi-listesi bilgi-listesi-iki">
+                            <div>
+                                <dt>Hasta</dt>
+                                <dd>
+                                    <span th:text="${r.hasta.adSoyad}"></span>
+                                    <span class="metin-ikincil metin-kucuk sayilar" th:if="${personelMi}"
+                                          th:text="' · ' + ${r.hasta.maskeliTcKimlikNo}"></span>
+                                </dd>
+                            </div>
+                            <div th:if="${personelMi and r.hasta.telefon != null}">
+                                <dt>Hasta telefonu</dt>
+                                <dd><a th:href="'tel:' + ${r.hasta.telefon}" th:text="${r.hasta.telefon}"></a></dd>
+                            </div>
+                            <div>
+                                <dt>Doktor / sağlık personeli</dt>
+                                <dd><span th:text="${r.calisan.gorunenAd}"></span> <span class="metin-ikincil metin-kucuk" th:text="${r.calisan.unvan}"></span></dd>
+                            </div>
+                            <div>
+                                <dt>Şube</dt>
+                                <dd th:text="${r.sube.tamAd}"></dd>
+                            </div>
+                            <div th:if="${r.sube.adres != null}">
+                                <dt>Adres</dt>
+                                <dd th:text="${r.sube.adres}"></dd>
+                            </div>
+                            <div>
+                                <dt>Süre</dt>
+                                <dd class="sayilar" th:text="${r.sureDakika} + ' dakika'"></dd>
+                            </div>
+                            <div>
+                                <dt>Ücret</dt>
+                                <dd class="sayilar" th:text="${@tarih.para(r.ucret)}"></dd>
+                            </div>
+                            <div>
+                                <dt>Talep tarihi</dt>
+                                <dd class="sayilar" th:text="${#temporals.format(r.olusturmaZamani, 'd MMMM yyyy HH:mm')}"></dd>
+                            </div>
+                        </dl>
+                        <div class="kart-bolumu" th:if="${r.hastaNotu}">
+                            <p class="kart-ust-etiket">Hasta notu</p>
+                            <p class="okuma-metni" th:text="${r.hastaNotu}"></p>
+                        </div>
+                    </section>
+
+                    <section class="kart" aria-labelledby="islem-baslik">
+                        <div class="kart-baslik"><h2 id="islem-baslik">İşlemler</h2></div>
+                        <div class="satir">
+                            <th:block th:replace="~{fragments/sablon :: randevuEylemleri(${r})}"></th:block>
+                        </div>
+                        <p class="alan-ipucu" th:unless="${r.durum.aktif}">Bu randevu kapandı; üzerinde işlem yapılamaz.</p>
+                        <p class="alan-ipucu" th:if="${r.durum.name() == 'ONAYLANDI' and personelMi}">
+                            İşaretlenmeyen onaylı randevular, bitişinden 2 saat sonra otomatik olarak tamamlanır.
+                        </p>
+                        <p class="alan-ipucu" th:if="${r.durum.name() == 'BEKLEMEDE'}">
+                            Randevu saatine kadar onaylanmayan talepler otomatik olarak düşer ve saat başka hastalara açılır.
+                        </p>
+                    </section>
+                </div>
+
+                <section class="kart" aria-labelledby="gecmis-baslik">
+                    <div class="kart-baslik"><h2 id="gecmis-baslik">Geçmiş</h2></div>
+                    <ol class="zaman-cizelgesi" role="list">
+                        <li th:each="h : ${r.hareketler}" class="zaman-adimi">
+                            <span class="zaman-isareti" th:classappend="'zaman-isareti-' + ${h.durum.renk}" aria-hidden="true"></span>
+                            <div class="yigin-sik">
+                                <div class="satir">
+                                    <strong th:text="${h.durum.etiket}"></strong>
+                                    <time class="metin-ikincil metin-kucuk sayilar" th:attr="datetime=${h.zaman}"
+                                          th:text="${#temporals.format(h.zaman, 'd MMM yyyy HH:mm')}"></time>
+                                </div>
+                                <span class="metin-kucuk">
+                                    <span class="metin-ikincil">İşlemi yapan:</span>
+                                    <span th:text="${h.yapan}"></span>
+                                </span>
+                                <span class="metin-kucuk metin-ikincil" th:if="${h.aciklama}" th:text="${h.aciklama}"></span>
+                            </div>
+                        </li>
+                    </ol>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

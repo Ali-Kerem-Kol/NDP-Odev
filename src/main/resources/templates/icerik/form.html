@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head(${duzenlenen != null} ? 'İçeriği düzenle' : 'Yeni içerik')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('icerik')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <a class="geri-baglantisi" th:href="@{/haberler}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Duyurular ve haberler
+            </a>
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1 th:text="${duzenlenen != null} ? 'İçeriği düzenle' : 'Yeni içerik'">Yeni içerik</h1>
+                    <p>Yayımlanan içerik ana sayfada ve Duyurular ve haberler bölümünde herkese görünür.</p>
+                </div>
+            </div>
+
+            <div class="izgara izgara-yan">
+                <section class="kart" aria-labelledby="form-baslik">
+                    <h2 id="form-baslik" class="gorsel-gizli">İçerik formu</h2>
+                    <form th:action="${duzenlenen != null} ? @{/icerik/{id}/duzenle(id=${duzenlenen.id})} : @{/icerik/yeni}"
+                          th:object="${form}" method="post" class="yigin" novalidate>
+                        <div th:if="${#fields.hasGlobalErrors()}" class="bildirim bildirim-hata" role="alert">
+                            <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                            <span class="bildirim-metin" th:each="h : ${#fields.globalErrors()}" th:text="${h}"></span>
+                        </div>
+
+                        <div class="alan">
+                            <label class="etiket" for="baslik">Başlık</label>
+                            <input class="girdi" th:field="*{baslik}" maxlength="150"
+                                   th:attr="aria-invalid=${#fields.hasErrors('baslik')} ? 'true' : null">
+                            <span class="alan-hata" th:if="${#fields.hasErrors('baslik')}" th:errors="*{baslik}"></span>
+                        </div>
+
+                        <fieldset class="yigin-sik">
+                            <legend class="etiket">Kategori</legend>
+                            <div class="segment">
+                                <th:block th:each="k : ${kategoriler}">
+                                    <input type="radio" th:field="*{kategori}" th:value="${k}" th:id="'kategori-' + ${k}">
+                                    <label th:for="'kategori-' + ${k}" th:text="${k.etiket}"></label>
+                                </th:block>
+                            </div>
+                        </fieldset>
+
+                        <th:block th:if="${aktifKullanici.siteAyarlariniDuzenleyebilirMi()}">
+                            <div th:replace="~{fragments/sablon :: secim('kurumId', 'icerik-kurum', 'Yayımlayan', 'Medora (genel duyuru)', ${@secenek.kurumlarVeGenel(kurumlar)}, ${form.kurumId}, false)}"></div>
+                        </th:block>
+
+                        <div class="alan">
+                            <label class="etiket" for="ozet">Özet</label>
+                            <textarea class="girdi" th:field="*{ozet}" maxlength="300" aria-describedby="ozet-ipucu"
+                                      th:attr="aria-invalid=${#fields.hasErrors('ozet')} ? 'true' : null"></textarea>
+                            <span class="alan-ipucu" id="ozet-ipucu">Listelerde ve ana sayfada başlığın altında görünür. En fazla 300 karakter.</span>
+                            <span class="alan-hata" th:if="${#fields.hasErrors('ozet')}" th:errors="*{ozet}"></span>
+                        </div>
+
+                        <div class="alan">
+                            <label class="etiket" for="icerik">Metin</label>
+                            <textarea class="girdi girdi-uzun" th:field="*{icerik}" maxlength="10000" aria-describedby="icerik-ipucu"
+                                      th:attr="aria-invalid=${#fields.hasErrors('icerik')} ? 'true' : null"></textarea>
+                            <span class="alan-ipucu" id="icerik-ipucu">Paragrafları boş bir satırla ayırın.</span>
+                            <span class="alan-hata" th:if="${#fields.hasErrors('icerik')}" th:errors="*{icerik}"></span>
+                        </div>
+
+                        <label class="onay-kutusu">
+                            <input type="checkbox" th:field="*{yayinla}">
+                            <span>Kaydedince yayımla. İşaretli değilse taslak olarak saklanır.</span>
+                        </label>
+
+                        <div class="satir">
+                            <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+                            <a class="dugme dugme-hayalet" th:href="@{/haberler}">Vazgeç</a>
+                        </div>
+                    </form>
+                </section>
+
+                <aside class="kart" aria-labelledby="ipucu-baslik">
+                    <div class="kart-baslik"><h2 id="ipucu-baslik">Nerede görünür?</h2></div>
+                    <dl class="bilgi-listesi">
+                        <div><dt>Ana sayfa</dt><dd>Yayımlanan en yeni dört içerik listelenir.</dd></div>
+                        <div><dt>Öne çıkan</dt><dd>Sistem yöneticisinin seçtiği tek içerik ana sayfada en üstte büyük gösterilir.</dd></div>
+                        <div><dt>Duyurular ve haberler</dt><dd>Yayımlanan tüm içerik kategoriye göre süzülebilir.</dd></div>
+                        <div th:if="${duzenlenen != null}"><dt>Son düzenleme</dt>
+                            <dd th:text="${#temporals.format(duzenlenen.guncellemeZamani, 'd MMMM yyyy HH:mm')} + ' · ' + ${duzenlenen.yazar}"></dd></div>
+                    </dl>
+                </aside>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Çalışma saatlerim')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('calisma-saatleri')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1>Çalışma saatlerim</h1>
+                    <p>Hastalar yalnızca bu saatlere ve şubenin açık olduğu saatlere randevu alabilir.</p>
+                </div>
+            </div>
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+            <div th:replace="~{fragments/sablon :: uygunlukYonetimi(${calisan}, '/calisan/uygunluk')}"></div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

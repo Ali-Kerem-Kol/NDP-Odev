@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Randevu al')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('randevu-al')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1>Randevu al</h1>
+                    <p th:if="${hizmet == null}">Hizmeti seçtiğinizde o hizmeti veren tüm doktorların boş saatleri listelenir.</p>
+                    <p th:if="${hizmet != null}" th:text="'Önümüzdeki ' + ${takvimGunSayisi} + ' gün içindeki boş saatler. Size uyan saate dokunun.'"></p>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <!-- 1. Kurum -->
+            <section th:if="${kurum == null}" class="yigin" aria-labelledby="adim-kurum">
+                <div class="adim-baslik">
+                    <h2 id="adim-kurum">Hangi kurumdan randevu almak istiyorsunuz?</h2>
+                </div>
+                <ul role="list" class="secenekler secenekler-2">
+                    <li th:each="k : ${kurumlar}">
+                        <a class="secenek" th:href="@{/hasta/randevu-al(kurumId=${k.id})}">
+                            <span class="secenek-ikon"><svg th:replace="~{fragments/sablon :: ikon('bina')}"></svg></span>
+                            <span class="secenek-metin">
+                                <span class="secenek-baslik" th:text="${k.ad}"></span>
+                                <span class="secenek-aciklama" th:text="${k.tur.etiket} + ' · ' + ${k.subeler.size()} + ' şube'"></span>
+                            </span>
+                            <svg th:replace="~{fragments/sablon :: ikon('sag')}"></svg>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            <div th:if="${kurum != null}" class="izgara" th:classappend="${hizmet != null} ? 'izgara-yan-genis'">
+
+                <div class="yigin-genis">
+                    <!-- 2. Şube -->
+                    <section th:if="${sube == null}" class="yigin" aria-labelledby="adim-sube">
+                        <div class="adim-baslik">
+                            <h2 id="adim-sube">Hangi şubeye gideceksiniz?</h2>
+                        </div>
+                        <ul role="list" class="secenekler">
+                            <li th:each="s : ${subeler}">
+                                <a class="secenek" th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${s.id})}">
+                                    <span class="secenek-ikon"><svg th:replace="~{fragments/sablon :: ikon('konum')}"></svg></span>
+                                    <span class="secenek-metin">
+                                        <span class="secenek-baslik" th:text="${s.ad}"></span>
+                                        <span class="secenek-aciklama" th:text="${s.adres}"></span>
+                                    </span>
+                                    <svg th:replace="~{fragments/sablon :: ikon('sag')}"></svg>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 3. Hizmet -->
+                    <section th:if="${sube != null and hizmet == null}" class="yigin" aria-labelledby="adim-hizmet">
+                        <div class="adim-baslik">
+                            <h2 id="adim-hizmet">Hangi hizmet için randevu alıyorsunuz?</h2>
+                        </div>
+                        <ul role="list" class="secenekler secenekler-2">
+                            <li th:each="h : ${hizmetler}">
+                                <a class="secenek" th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${sube.id}, hizmetId=${h.id})}">
+                                    <span class="secenek-metin">
+                                        <span class="secenek-baslik" th:text="${h.ad}"></span>
+                                        <span class="secenek-aciklama" th:text="${h.tur.etiket} + ' · ' + ${h.sureDakika} + ' dk'"></span>
+                                    </span>
+                                    <span class="secenek-sag sayilar" th:text="${@tarih.para(h.ucret)}"></span>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- 4. Doktorlar ve boş saatler -->
+                    <section th:if="${hizmet != null}" class="yigin" aria-labelledby="adim-saat">
+                        <h2 id="adim-saat" class="gorsel-gizli">Doktorlar ve boş saatler</h2>
+
+                        <!-- Çalışan seçimi: birden çok doktor bu hizmeti veriyorsa hasta istediğini seçer -->
+                        <div th:if="${doktorlar.size() > 1}" class="yigin-sik">
+                            <span class="etiket" id="doktor-secimi">Doktor</span>
+                            <nav class="cipler" aria-labelledby="doktor-secimi">
+                                <a class="cip" th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${sube.id}, hizmetId=${hizmet.id})}"
+                                   th:attr="aria-current=${doktor == null} ? 'page' : null">Tüm doktorlar</a>
+                                <a th:each="d : ${doktorlar}" class="cip"
+                                   th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${sube.id}, hizmetId=${hizmet.id}, calisanId=${d.id})}"
+                                   th:attr="aria-current=${doktor != null and doktor.id == d.id} ? 'page' : null" th:text="${d.gorunenAd}"></a>
+                            </nav>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(takvimler)}" class="kart">
+                            <div th:replace="~{fragments/sablon :: bosDurum('stetoskop', 'Bu şubede bu hizmeti veren doktor yok', 'Başka bir şube veya hizmet seçmeyi deneyin.')}"></div>
+                        </div>
+
+                        <article th:each="t : ${takvimler}" class="kart doktor-takvimi" th:attr="aria-labelledby='doktor-' + ${t.calisan.id}">
+                            <div class="doktor-kimlik">
+                                <span class="avatar avatar-lg" aria-hidden="true" th:text="${t.calisan.basHarfler}"></span>
+                                <div>
+                                    <h3 th:id="'doktor-' + ${t.calisan.id}" th:text="${t.calisan.gorunenAd}"></h3>
+                                    <p th:text="${t.calisan.unvan} + (${t.calisan.bolum != null} ? ' · ' + ${t.calisan.bolum.ad} : '')"></p>
+                                </div>
+                            </div>
+
+                            <div th:if="${t.bos}" class="bildirim">
+                                <svg th:replace="~{fragments/sablon :: ikon('bilgi')}"></svg>
+                                <span class="bildirim-metin" th:text="'Önümüzdeki ' + ${takvimGunSayisi} + ' günde boş saat kalmadı.'"></span>
+                            </div>
+
+                            <div class="gunler" th:unless="${t.bos}">
+                                <div class="gun" th:each="g : ${t.gunler.subList(0, T(java.lang.Math).min(3, t.gunler.size()))}">
+                                    <div class="gun-baslik">
+                                        <strong th:text="${@tarih.goreceliGun(g.tarih)}"></strong>
+                                        <span th:text="${@tarih.gunAy(g.tarih)}"></span>
+                                    </div>
+                                    <div class="saatler">
+                                        <a th:each="s : ${g.saatler}" class="saat"
+                                           th:href="@{/hasta/randevu-al/onay(calisanId=${t.calisan.id}, hizmetId=${hizmet.id}, zaman=${g.tarih} + 'T' + ${s})}"
+                                           th:text="${s}"
+                                           th:attr="aria-label=${@tarih.gunAy(g.tarih)} + ' ' + ${@tarih.gunAdi(g.tarih.dayOfWeek)} + ' saat ' + ${s} + ', ' + ${t.calisan.gorunenAd}">09:00</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <details class="diger-gunler" th:if="${t.gunler.size() > 3}">
+                                <summary>
+                                    <span th:text="'Diğer ' + ${t.gunler.size() - 3} + ' günü göster'"></span>
+                                    <svg th:replace="~{fragments/sablon :: ikonK('asagi')}"></svg>
+                                </summary>
+                                <div class="gunler">
+                                    <div class="gun" th:each="g : ${t.gunler.subList(3, t.gunler.size())}">
+                                        <div class="gun-baslik">
+                                            <strong th:text="${@tarih.goreceliGun(g.tarih)}"></strong>
+                                            <span th:text="${@tarih.gunAy(g.tarih)}"></span>
+                                        </div>
+                                        <div class="saatler">
+                                            <a th:each="s : ${g.saatler}" class="saat"
+                                               th:href="@{/hasta/randevu-al/onay(calisanId=${t.calisan.id}, hizmetId=${hizmet.id}, zaman=${g.tarih} + 'T' + ${s})}"
+                                               th:text="${s}"
+                                               th:attr="aria-label=${@tarih.gunAy(g.tarih)} + ' ' + ${@tarih.gunAdi(g.tarih.dayOfWeek)} + ' saat ' + ${s} + ', ' + ${t.calisan.gorunenAd}">09:00</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </article>
+                    </section>
+                </div>
+
+                <!-- Seçim özeti -->
+                <aside aria-label="Seçimleriniz">
+                    <dl class="secim-ozeti">
+                        <div class="secim-ozeti-satiri">
+                            <svg th:replace="~{fragments/sablon :: ikonK('bina')}"></svg>
+                            <dt>Kurum</dt>
+                            <dd th:text="${kurum.ad}"></dd>
+                            <a th:if="${kurumlar.size() > 1}" th:href="@{/hasta/randevu-al}">Değiştir</a>
+                        </div>
+                        <div class="secim-ozeti-satiri" th:if="${sube != null}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('konum')}"></svg>
+                            <dt>Şube</dt>
+                            <dd th:text="${sube.ad}"></dd>
+                            <a th:if="${subeler.size() > 1}" th:href="@{/hasta/randevu-al(kurumId=${kurum.id})}">Değiştir</a>
+                        </div>
+                        <div class="secim-ozeti-satiri" th:if="${hizmet != null}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('hizmet')}"></svg>
+                            <dt>Hizmet</dt>
+                            <dd th:text="${hizmet.ad}"></dd>
+                            <a th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${sube.id})}">Değiştir</a>
+                        </div>
+                        <div class="secim-ozeti-satiri" th:if="${doktor != null}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('stetoskop')}"></svg>
+                            <dt>Doktor</dt>
+                            <dd th:text="${doktor.gorunenAd}"></dd>
+                            <a th:href="@{/hasta/randevu-al(kurumId=${kurum.id}, subeId=${sube.id}, hizmetId=${hizmet.id})}">Değiştir</a>
+                        </div>
+                        <div class="secim-ozeti-satiri" th:if="${hizmet != null}">
+                            <svg th:replace="~{fragments/sablon :: ikonK('ucret')}"></svg>
+                            <dt>Ücret</dt>
+                            <dd class="sayilar" th:text="${@tarih.para(hizmet.ucret)} + ' · ' + ${hizmet.sureDakika} + ' dk'"></dd>
+                        </div>
+                    </dl>
+                </aside>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

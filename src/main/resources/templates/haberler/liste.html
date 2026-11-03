@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Duyurular ve haberler')}"></head>
+<body>
+<div class="sayfa">
+<th:block th:replace="~{fragments/sablon :: siteUst('haberler')}"></th:block>
+
+<main id="icerik" class="karsilama-ana">
+    <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+    <div class="yigin-genis">
+        <div class="sayfa-baslik">
+            <div class="yigin-sik">
+                <h1>Duyurular ve haberler</h1>
+                <p>Kurumlarımızdan duyurular, haberler ve uzmanlarımızın sağlık rehberi yazıları.</p>
+            </div>
+            <a th:if="${aktifKullanici != null and aktifKullanici.icerikYazabilirMi()}" class="dugme dugme-birincil" th:href="@{/icerik/yeni}">
+                <svg th:replace="~{fragments/sablon :: ikon('arti')}"></svg>Yeni duyuru</a>
+        </div>
+
+        <!-- İçerik yazanlar: henüz yayımlanmamış taslakları -->
+        <section class="kart kart-vurgulu" th:if="${taslaklar != null and !#lists.isEmpty(taslaklar)}" aria-labelledby="taslak-baslik">
+            <div class="kart-baslik">
+                <h2 id="taslak-baslik">Taslaklarınız</h2>
+                <span class="kart-ust-etiket">Yalnızca size görünür</span>
+            </div>
+            <div class="haber-listesi">
+                <th:block th:each="d : ${taslaklar}"><article th:replace="~{fragments/sablon :: duyuruSatiri(${d})}"></article></th:block>
+            </div>
+        </section>
+
+        <section class="kart" aria-labelledby="liste-baslik">
+            <h2 id="liste-baslik" class="gorsel-gizli">İçerik listesi</h2>
+            <nav class="sekmeler" aria-label="Kategori">
+                <a class="sekme" th:href="@{/haberler}" th:attr="aria-current=${seciliKategori == null} ? 'page' : null">Tümü</a>
+                <a th:each="k : ${kategoriler}" class="sekme" th:href="@{/haberler(kategori=${k})}"
+                   th:attr="aria-current=${seciliKategori == k} ? 'page' : null" th:text="${k.etiket}"></a>
+            </nav>
+
+            <th:block th:if="${#lists.isEmpty(duyurular)}">
+                <div th:replace="~{fragments/sablon :: bosDurum('not', 'Bu kategoride içerik yok', 'Başka bir kategoriye göz atabilirsiniz.')}"></div>
+            </th:block>
+            <div class="haber-listesi" th:unless="${#lists.isEmpty(duyurular)}">
+                <th:block th:each="d : ${duyurular}"><article th:replace="~{fragments/sablon :: duyuruSatiri(${d})}"></article></th:block>
+            </div>
+
+            <nav class="sayfalama" aria-label="Sayfalar" th:if="${sayfaBilgisi.totalPages > 1}">
+                <a th:if="${sayfaBilgisi.hasPrevious()}" class="dugme dugme-ikincil dugme-sm"
+                   th:href="@{/haberler(kategori=${seciliKategori}, sayfa=${sayfaBilgisi.number - 1})}">
+                    <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Önceki</a>
+                <span class="metin-ikincil metin-kucuk sayilar"
+                      th:text="'Sayfa ' + ${sayfaBilgisi.number + 1} + ' / ' + ${sayfaBilgisi.totalPages}"></span>
+                <a th:if="${sayfaBilgisi.hasNext()}" class="dugme dugme-ikincil dugme-sm"
+                   th:href="@{/haberler(kategori=${seciliKategori}, sayfa=${sayfaBilgisi.number + 1})}">
+                    Sonraki<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg></a>
+            </nav>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Randevuyu onayla')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('randevu-al')}"></th:block>
+
+    <main class="ana" id="icerik" th:with="sube=${talep.calisan().sube}, hizmet=${talep.hizmet()}">
+        <div class="ana-ic">
+            <a class="geri-baglantisi" th:href="@{/hasta/randevu-al(kurumId=${sube.kurum.id}, subeId=${sube.id}, hizmetId=${hizmet.id})}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Başka saat seç
+            </a>
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1>Randevuyu onaylayın</h1>
+                    <p>Bilgileri kontrol edin. Talebiniz gönderildikten sonra kurumun onayına sunulur.</p>
+                </div>
+            </div>
+
+            <div class="izgara izgara-yan">
+                <section class="oncu oncu-vurgulu" aria-labelledby="ozet-baslik">
+                    <div class="yigin">
+                        <span class="kart-ust-etiket" id="ozet-baslik">Randevu özeti</span>
+                        <p class="oncu-deger sayilar"
+                           th:text="${#temporals.format(talep.baslangic(), 'HH:mm')} + ' - ' + ${#temporals.format(talep.bitis(), 'HH:mm')}">10:00</p>
+                        <p class="oncu-baslik" th:text="${@tarih.uzunTarih(talep.baslangic().toLocalDate())}"></p>
+                    </div>
+                    <div class="oncu-detaylar">
+                        <div><svg th:replace="~{fragments/sablon :: ikon('stetoskop')}"></svg>
+                            <span><strong th:text="${talep.calisan().gorunenAd}"></strong> <span class="metin-ikincil" th:text="${talep.calisan().unvan}"></span></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('hizmet')}"></svg>
+                            <span th:text="${hizmet.ad} + ' · ' + ${hizmet.sureDakika} + ' dakika'"></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('konum')}"></svg>
+                            <span th:text="${sube.tamAd} + (${sube.adres != null} ? ' · ' + ${sube.adres} : '')"></span></div>
+                        <div><svg th:replace="~{fragments/sablon :: ikon('ucret')}"></svg>
+                            <span class="sayilar" th:text="${@tarih.para(hizmet.ucret)}"></span></div>
+                    </div>
+                </section>
+
+                <section class="kart" aria-labelledby="gonder-baslik">
+                    <form th:action="@{/hasta/randevu-al}" method="post" class="yigin">
+                        <h2 id="gonder-baslik" class="gorsel-gizli">Talebi gönder</h2>
+                        <input type="hidden" name="calisanId" th:value="${talep.calisan().id}">
+                        <input type="hidden" name="hizmetId" th:value="${hizmet.id}">
+                        <input type="hidden" name="zaman" th:value="${talep.baslangic()}">
+                        <div class="alan">
+                            <label class="etiket" for="not">Doktorunuza not <span class="istege-bagli">(isteğe bağlı)</span></label>
+                            <textarea class="girdi" id="not" name="not" maxlength="500" aria-describedby="not-ipucu"></textarea>
+                            <span class="alan-ipucu" id="not-ipucu">Şikayetinizi veya kullandığınız ilaçları kısaca yazabilirsiniz.</span>
+                        </div>
+                        <button type="submit" class="dugme dugme-birincil dugme-lg dugme-tam">Randevu talebini gönder</button>
+                        <p class="alan-ipucu">Randevuya gelemeyecekseniz Randevularım sayfasından iptal edebilirsiniz.</p>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

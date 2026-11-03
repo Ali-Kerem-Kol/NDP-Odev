@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head(${duyuru.baslik})}"></head>
+<body>
+<div class="sayfa">
+<th:block th:replace="~{fragments/sablon :: siteUst('haberler')}"></th:block>
+
+<main id="icerik" class="karsilama-ana">
+    <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+    <div class="izgara izgara-yan">
+        <article class="makale" aria-labelledby="makale-baslik">
+            <a class="geri-baglantisi" th:href="@{/haberler}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Duyurular ve haberler
+            </a>
+
+            <div th:unless="${duyuru.yayinda}" class="bildirim bildirim-uyari" role="status">
+                <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                <span class="bildirim-metin">Bu içerik taslak; yalnızca içerik yöneticileri görebilir.</span>
+            </div>
+
+            <div class="yigin">
+                <div class="haber-ust">
+                    <span class="haber-kategori" th:text="${duyuru.kategori.etiket}"></span>
+                    <span th:text="${duyuru.kaynak}"></span>
+                </div>
+                <h1 id="makale-baslik" th:text="${duyuru.baslik}"></h1>
+                <p class="makale-giris" th:text="${duyuru.ozet}"></p>
+                <div class="haber-meta">
+                    <time class="sayilar" th:if="${duyuru.yayinZamani}" th:attr="datetime=${duyuru.yayinZamani}"
+                          th:text="${#temporals.format(duyuru.yayinZamani, 'd MMMM yyyy')}"></time>
+                    <span th:text="${duyuru.okumaSuresi} + ' dk okuma'"></span>
+                    <span th:text="'Yazan: ' + ${duyuru.yazar}"></span>
+                </div>
+                <th:block th:if="${aktifKullanici != null and aktifKullanici.icerigiYonetebilirMi(duyuru)}">
+                    <div th:replace="~{fragments/sablon :: duyuruYonetimi(${duyuru})}"></div>
+                </th:block>
+            </div>
+
+            <div class="makale-govde">
+                <p th:each="p : ${duyuru.paragraflar}" th:text="${p}"></p>
+            </div>
+        </article>
+
+        <aside class="yigin-genis" aria-label="Diğer içerikler">
+            <section class="kart" th:unless="${#lists.isEmpty(digerleri)}" aria-labelledby="diger-baslik">
+                <div class="kart-baslik"><h2 id="diger-baslik">Diğer yazılar</h2></div>
+                <ul role="list" class="baslik-listesi">
+                    <li th:each="d : ${digerleri}">
+                        <a th:href="@{/haberler/{id}(id=${d.id})}">
+                            <span class="baslik-listesi-ust">
+                                <span th:text="${d.kategori.etiket}"></span>
+                                <time class="sayilar" th:attr="datetime=${d.yayinZamani}" th:text="${#temporals.format(d.yayinZamani, 'd MMMM')}"></time>
+                            </span>
+                            <span class="baslik-listesi-baslik" th:text="${d.baslik}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+            <section th:if="${aktifKullanici == null or aktifKullanici.randevuAlabilirMi()}" class="oncu-haber" aria-labelledby="randevu-cagri">
+                <h2 id="randevu-cagri">Randevu almak ister misiniz?</h2>
+                <p>Hizmeti seçin, doktorların iki haftalık boş saatlerini görün.</p>
+                <div><a class="dugme dugme-birincil" th:href="@{/hasta/randevu-al}">
+                    <svg th:replace="~{fragments/sablon :: ikon('takvim-arti')}"></svg>Randevu al</a></div>
+            </section>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>
