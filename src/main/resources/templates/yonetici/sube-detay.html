@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head(${sube.ad})}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('subeler')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <a class="geri-baglantisi" th:href="@{/yonetici/subeler}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Şubeler
+            </a>
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1 th:text="${sube.ad}"></h1>
+                    <p th:text="(${sube.adres} ?: 'Adres girilmemiş') + (${sube.telefon != null} ? ' · ' + ${sube.telefon} : '')"></p>
+                </div>
+                <div class="satir">
+                    <button type="button" class="dugme dugme-ikincil" data-diyalog-ac="diyalog-sube">
+                        <svg th:replace="~{fragments/sablon :: ikon('kalem')}"></svg>Şubeyi düzenle
+                    </button>
+                    <form th:action="@{/yonetici/subeler/{id}/sil(id=${sube.id})}" method="post"
+                          data-onay-baslik="Şubeyi kaldır" data-onay-dugmesi="Kaldır" data-onay-tehlikeli
+                          th:attr="data-onay-metni=${sube.ad} + ' çalışma saatleri ve bölümleriyle birlikte kaldırılacak. Personeli ya da randevu geçmişi olan şube kaldırılamaz.'">
+                        <button type="submit" class="dugme dugme-tehlike-cizgi"><svg th:replace="~{fragments/sablon :: ikon('cop')}"></svg>Kaldır</button>
+                    </form>
+                </div>
+            </div>
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <div class="izgara izgara-yan">
+                <section class="kart" aria-labelledby="saat-baslik">
+                    <div class="kart-baslik"><h2 id="saat-baslik">Çalışma saatleri</h2></div>
+                    <div class="tablo-sarmal">
+                        <table class="tablo">
+                            <thead><tr><th scope="col">Gün</th><th scope="col">Saatler</th><th scope="col" class="sag"><span class="gorsel-gizli">İşlem</span></th></tr></thead>
+                            <tbody>
+                            <tr th:each="g : ${@tarih.gunler()}" th:with="saat=${sube.calismaSaati(g).orElse(null)}">
+                                <td class="hucre-baslik" th:text="${@tarih.gunAdi(g)}"></td>
+                                <td class="sayilar">
+                                    <span th:if="${saat != null}" th:text="${saat.acilis} + ' - ' + ${saat.kapanis}"></span>
+                                    <span th:if="${saat == null}" class="rozet rozet-notr">Kapalı</span>
+                                </td>
+                                <td class="sag">
+                                    <form th:if="${saat != null}" method="post"
+                                          th:action="@{/yonetici/subeler/{id}/calisma-saati/{gun}/sil(id=${sube.id}, gun=${g})}"
+                                          data-onay-baslik="Günü kapat" data-onay-dugmesi="Kapat" data-onay-tehlikeli
+                                          th:attr="data-onay-metni=${@tarih.gunAdi(g)} + ' günü şube kapalı olacak ve bu güne yeni randevu alınamayacak.'">
+                                        <button type="submit" class="dugme dugme-hayalet dugme-sm">Kapat</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="kart-bolumu">
+                        <form th:action="@{/yonetici/subeler/{id}/calisma-saati(id=${sube.id})}" method="post" class="yigin">
+                            <fieldset class="yigin-sik">
+                                <legend class="etiket">Gün</legend>
+                                <div class="segment">
+                                    <th:block th:each="g, d : ${@tarih.gunler()}">
+                                        <input type="radio" name="gun" th:id="'cs-gun-' + ${g}" th:value="${g}" th:checked="${d.first}">
+                                        <label th:for="'cs-gun-' + ${g}" th:text="${@tarih.kisaGunAdi(g)}" th:title="${@tarih.gunAdi(g)}"></label>
+                                    </th:block>
+                                </div>
+                            </fieldset>
+                            <div class="form-izgara form-izgara-2">
+                                <div class="alan">
+                                    <label class="etiket" for="acilis">Açılış</label>
+                                    <input class="girdi" type="time" id="acilis" name="acilis" value="08:30" step="300" required>
+                                </div>
+                                <div class="alan">
+                                    <label class="etiket" for="kapanis">Kapanış</label>
+                                    <input class="girdi" type="time" id="kapanis" name="kapanis" value="18:00" step="300" required>
+                                </div>
+                            </div>
+                            <div><button type="submit" class="dugme dugme-birincil">Saati kaydet</button></div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="kart" aria-labelledby="bolum-baslik">
+                    <div class="kart-baslik">
+                        <h2 id="bolum-baslik">Bölümler</h2>
+                        <span class="kart-ust-etiket" th:text="${sube.bolumler.size()} + ' bölüm'"></span>
+                    </div>
+                    <th:block th:if="${#lists.isEmpty(sube.bolumler)}">
+                        <div th:replace="~{fragments/sablon :: bosDurum('bina', 'Bölüm yok', 'Personeli bölüme bağlamak için önce bölüm ekleyin.')}"></div>
+                    </th:block>
+                    <ul role="list" class="satir-listesi" th:unless="${#lists.isEmpty(sube.bolumler)}">
+                        <li th:each="b : ${sube.bolumler}">
+                            <div class="yigin-sifir">
+                                <strong th:text="${b.ad}"></strong>
+                                <span class="metin-ikincil metin-kucuk" th:if="${b.aciklama}" th:text="${b.aciklama}"></span>
+                            </div>
+                            <div class="satir">
+                                <button type="button" class="dugme dugme-hayalet dugme-sm" th:attr="data-diyalog-ac='diyalog-bolum-' + ${b.id}">Düzenle</button>
+                                <form th:action="@{/yonetici/bolumler/{id}/sil(id=${b.id})}" method="post"
+                                      data-onay-baslik="Bölümü kaldır" data-onay-dugmesi="Kaldır" data-onay-tehlikeli
+                                      th:attr="data-onay-metni=${b.ad} + ' bölümü kaldırılacak. Bölümde personel varsa önce başka bölüme alınmalıdır.'">
+                                    <button type="submit" class="dugme dugme-hayalet dugme-sm">Kaldır</button>
+                                </form>
+                            </div>
+                            <dialog th:id="'diyalog-bolum-' + ${b.id}" class="diyalog" th:attr="aria-labelledby='diyalog-bolum-baslik-' + ${b.id}">
+                                <form th:action="@{/yonetici/bolumler/{id}/duzenle(id=${b.id})}" method="post" class="diyalog-icerik">
+                                    <h2 th:id="'diyalog-bolum-baslik-' + ${b.id}">Bölümü düzenle</h2>
+                                    <div class="alan">
+                                        <label class="etiket" th:for="'bolum-ad-' + ${b.id}">Bölüm adı</label>
+                                        <input class="girdi" th:id="'bolum-ad-' + ${b.id}" name="ad" maxlength="100" required th:value="${b.ad}">
+                                    </div>
+                                    <div class="alan">
+                                        <label class="etiket" th:for="'bolum-aciklama-' + ${b.id}">Açıklama <span class="istege-bagli">(isteğe bağlı)</span></label>
+                                        <input class="girdi" th:id="'bolum-aciklama-' + ${b.id}" name="aciklama" maxlength="300" th:value="${b.aciklama}">
+                                    </div>
+                                    <div class="diyalog-eylemleri">
+                                        <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                                        <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        </li>
+                    </ul>
+                    <div class="kart-bolumu">
+                        <form th:action="@{/yonetici/subeler/{id}/bolum(id=${sube.id})}" method="post" class="yigin">
+                            <div class="alan">
+                                <label class="etiket" for="bolum-ad">Bölüm adı</label>
+                                <input class="girdi" id="bolum-ad" name="ad" required>
+                            </div>
+                            <div class="alan">
+                                <label class="etiket" for="bolum-aciklama">Açıklama <span class="istege-bagli">(isteğe bağlı)</span></label>
+                                <input class="girdi" id="bolum-aciklama" name="aciklama">
+                            </div>
+                            <div><button type="submit" class="dugme dugme-birincil"><svg th:replace="~{fragments/sablon :: ikon('arti')}"></svg>Bölüm ekle</button></div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog id="diyalog-sube" class="diyalog" aria-labelledby="diyalog-sube-baslik">
+    <form th:action="@{/yonetici/subeler/{id}/duzenle(id=${sube.id})}" method="post" class="diyalog-icerik">
+        <h2 id="diyalog-sube-baslik">Şube bilgileri</h2>
+        <div class="alan">
+            <label class="etiket" for="sube-ad">Şube adı</label>
+            <input class="girdi" id="sube-ad" name="ad" maxlength="150" required th:value="${sube.ad}">
+        </div>
+        <div class="alan">
+            <label class="etiket" for="sube-adres">Adres</label>
+            <input class="girdi" id="sube-adres" name="adres" maxlength="300" autocomplete="street-address" th:value="${sube.adres}">
+        </div>
+        <div class="alan">
+            <label class="etiket" for="sube-telefon">Telefon</label>
+            <input class="girdi" type="tel" id="sube-telefon" name="telefon" maxlength="30" th:value="${sube.telefon}">
+        </div>
+        <div class="diyalog-eylemleri">
+            <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+            <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

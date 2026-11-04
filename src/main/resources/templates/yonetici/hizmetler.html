@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Hizmetler')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('hizmetler')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1>Hizmetler</h1>
+                    <p>Tüm şubelerde geçerli sağlık hizmetleri. Süre ve ücret değişikliği yalnızca yeni randevulara yansır.</p>
+                </div>
+                <button type="button" class="dugme dugme-birincil" data-diyalog-ac="diyalog-yeni-hizmet">
+                    <svg th:replace="~{fragments/sablon :: ikon('arti')}"></svg>Yeni hizmet
+                </button>
+            </div>
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <section class="kart" aria-labelledby="liste-baslik">
+                <div class="kart-baslik">
+                    <h2 id="liste-baslik">Hizmet listesi</h2>
+                    <span class="kart-ust-etiket" th:text="${hizmetler.size()} + ' hizmet'"></span>
+                </div>
+                <div class="tablo-sarmal" tabindex="0" role="region" aria-labelledby="liste-baslik">
+                    <table class="tablo">
+                        <thead>
+                        <tr>
+                            <th scope="col">Hizmet</th>
+                            <th scope="col">Süre (dk)</th>
+                            <th scope="col">Ücret</th>
+                            <th scope="col">Durum</th>
+                            <th scope="col" class="sag"><span class="gorsel-gizli">İşlemler</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="h : ${hizmetler}">
+                            <td>
+                                <div class="hucre-baslik" th:text="${h.ad}"></div>
+                                <div class="metin-ikincil metin-kucuk" th:text="${h.tur.etiket}"></div>
+                            </td>
+                            <td class="sayilar" th:text="${h.sureDakika}"></td>
+                            <td class="sayilar" th:text="${@tarih.para(h.ucret)}"></td>
+                            <td>
+                                <span class="rozet" th:classappend="${h.aktif} ? 'rozet-basari' : 'rozet-notr'"
+                                      th:text="${h.aktif} ? 'Randevuya açık' : 'Kapalı'"></span>
+                            </td>
+                            <td class="sag">
+                                <div class="satir satir-sag">
+                                    <button type="button" class="dugme dugme-ikincil dugme-sm" th:attr="data-diyalog-ac='diyalog-hizmet-' + ${h.id}">Düzenle</button>
+                                    <form th:action="@{/yonetici/hizmetler/{id}/aktiflik(id=${h.id})}" method="post">
+                                        <button type="submit" class="dugme dugme-hayalet dugme-sm" th:text="${h.aktif} ? 'Randevuya kapat' : 'Randevuya aç'"></button>
+                                    </form>
+                                </div>
+                                <dialog th:id="'diyalog-hizmet-' + ${h.id}" class="diyalog diyalog-genis" th:attr="aria-labelledby='diyalog-hizmet-baslik-' + ${h.id}">
+                                    <form th:action="@{/yonetici/hizmetler/{id}/guncelle(id=${h.id})}" method="post" class="diyalog-icerik">
+                                        <h2 th:id="'diyalog-hizmet-baslik-' + ${h.id}">Hizmeti düzenle</h2>
+                                        <p>Süre ve ücret değişikliği yalnızca yeni randevulara yansır.</p>
+                                        <div class="alan">
+                                            <label class="etiket" th:for="'hizmet-ad-' + ${h.id}">Hizmet adı</label>
+                                            <input class="girdi" th:id="'hizmet-ad-' + ${h.id}" name="ad" maxlength="150" required th:value="${h.ad}">
+                                        </div>
+                                        <div th:replace="~{fragments/sablon :: secim('tur', 'hizmet-tur-' + ${h.id}, 'Tür', 'Tür seçin', ${@secenek.hizmetTurleri()}, ${h.tur.name()}, true)}"></div>
+                                        <div class="form-izgara form-izgara-2">
+                                            <div class="alan">
+                                                <label class="etiket" th:for="'hizmet-sure-' + ${h.id}">Süre (dk)</label>
+                                                <input class="girdi sayilar" type="number" min="1" max="480" name="sureDakika" required
+                                                       th:id="'hizmet-sure-' + ${h.id}" th:value="${h.sureDakika}">
+                                            </div>
+                                            <div class="alan">
+                                                <label class="etiket" th:for="'hizmet-ucret-' + ${h.id}">Ücret (₺)</label>
+                                                <input class="girdi sayilar" type="number" min="0" step="0.01" name="ucret" required
+                                                       th:id="'hizmet-ucret-' + ${h.id}" th:value="${h.ucret}">
+                                            </div>
+                                        </div>
+                                        <div class="alan">
+                                            <label class="etiket" th:for="'hizmet-aciklama-' + ${h.id}">Açıklama <span class="istege-bagli">(isteğe bağlı)</span></label>
+                                            <textarea class="girdi" th:id="'hizmet-aciklama-' + ${h.id}" name="aciklama" maxlength="500" rows="3" th:text="${h.aciklama}"></textarea>
+                                        </div>
+                                        <div class="diyalog-eylemleri">
+                                            <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                                            <button type="submit" class="dugme dugme-birincil">Kaydet</button>
+                                        </div>
+                                    </form>
+                                </dialog>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <dialog id="diyalog-yeni-hizmet" class="diyalog diyalog-genis" aria-labelledby="yeni-baslik">
+                <form th:action="@{/yonetici/hizmetler}" method="post" class="diyalog-icerik">
+                    <h2 id="yeni-baslik">Yeni hizmet</h2>
+                    <div class="alan">
+                        <label class="etiket" for="ad">Hizmet adı</label>
+                        <input class="girdi" id="ad" name="ad" placeholder="Genel muayene" required>
+                    </div>
+                    <div th:replace="~{fragments/sablon :: secim('tur', 'yeni-tur', 'Tür', 'Tür seçin', ${@secenek.hizmetTurleri()}, '', true)}"></div>
+                    <div class="form-izgara form-izgara-2">
+                        <div class="alan">
+                            <label class="etiket" for="sureDakika">Süre (dk)</label>
+                            <input class="girdi sayilar" type="number" id="sureDakika" name="sureDakika" min="1" max="480" required>
+                        </div>
+                        <div class="alan">
+                            <label class="etiket" for="ucret">Ücret (₺)</label>
+                            <input class="girdi sayilar" type="number" id="ucret" name="ucret" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="alan">
+                        <label class="etiket" for="aciklama">Açıklama <span class="istege-bagli">(isteğe bağlı)</span></label>
+                        <textarea class="girdi" id="aciklama" name="aciklama" maxlength="500"></textarea>
+                    </div>
+                    <div class="diyalog-eylemleri">
+                        <button type="button" class="dugme dugme-ikincil" data-diyalog-kapat>Vazgeç</button>
+                        <button type="submit" class="dugme dugme-birincil">Hizmeti ekle</button>
+                    </div>
+                </form>
+            </dialog>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

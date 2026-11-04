@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head(${calisan.gorunenAd})}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('calisanlar')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <a class="geri-baglantisi" th:href="@{/yonetici/calisanlar}">
+                <svg th:replace="~{fragments/sablon :: ikonK('geri')}"></svg>Personel
+            </a>
+            <div class="sayfa-baslik">
+                <div class="doktor-kimlik">
+                    <span class="avatar avatar-lg" aria-hidden="true" th:text="${calisan.basHarfler}"></span>
+                    <div class="yigin-sik">
+                        <div class="satir">
+                            <h1 th:text="${calisan.gorunenAd}"></h1>
+                            <span class="rozet rozet-notr" th:unless="${calisan.aktif}">Pasif</span>
+                        </div>
+                        <p th:text="${calisan.unvan} + ' · ' + ${calisan.sube.tamAd} + (${calisan.bolum != null} ? ' · ' + ${calisan.bolum.ad} : '')"></p>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <div class="izgara izgara-yan">
+                <section class="kart" aria-labelledby="bilgi-baslik">
+                    <div class="kart-baslik"><h2 id="bilgi-baslik">Personel bilgileri</h2></div>
+                    <form th:action="@{/yonetici/calisanlar/{id}/bilgiler(id=${calisan.id})}" th:object="${bilgiFormu}" method="post" class="yigin">
+                        <div class="form-izgara form-izgara-2">
+                            <div class="alan">
+                                <label class="etiket" for="adSoyad">Ad soyad</label>
+                                <input class="girdi" th:field="*{adSoyad}" required>
+                            </div>
+                            <div class="alan">
+                                <label class="etiket" for="unvanBilgisi" th:text="${calisan.unvanEtiketi}">Uzmanlık alanı</label>
+                                <input class="girdi" th:field="*{unvanBilgisi}" required>
+                            </div>
+                            <div th:replace="~{fragments/sablon :: secim('subeId', 'duzen-sube', 'Şube', 'Şube seçin', ${@secenek.subeler(subeler)}, ${bilgiFormu.subeId}, true)}"></div>
+                            <div th:replace="~{fragments/sablon :: secim('bolumId', 'duzen-bolum', 'Bölüm', 'Bölüm seçin (isteğe bağlı)', ${@secenek.bolumler(bolumler)}, ${bilgiFormu.bolumId}, false)}"></div>
+                            <div class="alan">
+                                <label class="etiket" for="telefon">Telefon <span class="istege-bagli">(isteğe bağlı)</span></label>
+                                <input class="girdi" type="tel" th:field="*{telefon}">
+                            </div>
+                        </div>
+                        <p class="alan-ipucu" th:if="${ileriRandevuSayisi > 0}"
+                           th:text="'İleri tarihli ' + ${ileriRandevuSayisi} + ' aktif randevusu olduğu için şubesi değiştirilemez.'"></p>
+                        <div><button type="submit" class="dugme dugme-birincil">Bilgileri kaydet</button></div>
+                    </form>
+                </section>
+
+                <section class="kart" aria-labelledby="hesap-baslik">
+                    <div class="kart-baslik"><h2 id="hesap-baslik">Hesap</h2></div>
+                    <dl class="bilgi-listesi">
+                        <div><dt>Durum</dt>
+                            <dd><span class="rozet" th:classappend="${calisan.aktif} ? 'rozet-basari' : 'rozet-notr'" th:text="${calisan.aktif} ? 'Aktif' : 'Pasif'"></span></dd></div>
+                        <div><dt>Kurumsal e-posta</dt><dd th:text="${calisan.eposta}"></dd></div>
+                        <div><dt>Rol</dt><dd th:text="${calisan.rol.etiket}"></dd></div>
+                        <div><dt>İleri tarihli aktif randevu</dt><dd class="sayilar" th:text="${ileriRandevuSayisi}"></dd></div>
+                    </dl>
+                    <div class="kart-bolumu yigin-sik">
+                        <th:block th:if="${calisan.aktif}">
+                            <form th:action="@{/yonetici/calisanlar/{id}/pasiflestir(id=${calisan.id})}" method="post"
+                                  data-onay-baslik="Personeli pasifleştir" data-onay-dugmesi="Pasifleştir" data-onay-tehlikeli
+                                  th:attr="data-onay-metni=${calisan.gorunenAd} + ' giriş yapamayacak ve hastalar ondan randevu alamayacak. Geçmiş randevuları korunur; dilediğiniz zaman yeniden aktifleştirebilirsiniz.'">
+                                <button type="submit" class="dugme dugme-tehlike-cizgi" th:disabled="${ileriRandevuSayisi > 0}">Pasifleştir</button>
+                            </form>
+                            <p class="alan-ipucu" th:if="${ileriRandevuSayisi > 0}">Pasifleştirmeden önce ileri tarihli randevularını iptal edin.</p>
+                            <p class="alan-ipucu" th:unless="${ileriRandevuSayisi > 0}">Ayrılan personel silinmez, pasifleştirilir; geçmiş kayıtlar korunur.</p>
+                        </th:block>
+                        <th:block th:unless="${calisan.aktif}">
+                            <form th:action="@{/yonetici/calisanlar/{id}/aktiflestir(id=${calisan.id})}" method="post">
+                                <button type="submit" class="dugme dugme-birincil">Yeniden aktifleştir</button>
+                            </form>
+                            <p class="alan-ipucu">Pasif personel giriş yapamaz ve randevu listelerinde görünmez.</p>
+                        </th:block>
+                    </div>
+                </section>
+            </div>
+
+            <section class="kart" aria-labelledby="hizmet-baslik">
+                <div class="kart-baslik">
+                    <h2 id="hizmet-baslik">Verdiği hizmetler</h2>
+                    <span class="kart-ust-etiket">Hastalar yalnızca seçili hizmetler için randevu alabilir</span>
+                </div>
+                <form th:action="@{/yonetici/calisanlar/{id}/hizmetler(id=${calisan.id})}" method="post" class="yigin">
+                    <fieldset class="yigin-sik">
+                        <legend class="gorsel-gizli">Hizmetler</legend>
+                        <label class="onay-kutusu" th:each="h : ${hizmetler}">
+                            <input type="checkbox" name="hizmetIdleri" th:value="${h.id}" th:checked="${calisan.hizmetVerebilirMi(h)}">
+                            <span>
+                                <strong th:text="${h.ad}"></strong>
+                                <span class="metin-ikincil" th:text="' · ' + ${h.sureDakika} + ' dk · ' + ${@tarih.para(h.ucret)}"></span>
+                                <span class="rozet rozet-notr" th:unless="${h.aktif}">Pasif</span>
+                            </span>
+                        </label>
+                    </fieldset>
+                    <div><button type="submit" class="dugme dugme-birincil">Hizmetleri kaydet</button></div>
+                </form>
+            </section>
+
+            <div class="yigin">
+                <h2 class="oncu-baslik">Çalışma saatleri</h2>
+                <div th:replace="~{fragments/sablon :: uygunlukYonetimi(${calisan}, '/yonetici/calisanlar/' + ${calisan.id} + '/uygunluk')}"></div>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

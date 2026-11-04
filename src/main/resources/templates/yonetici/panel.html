@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Genel bakış')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('genel')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1 th:text="${kurum.ad}">Kurum</h1>
+                    <p th:text="${kurum.tur.etiket} + ' · ' + ${subeSayisi} + ' şube · ' + ${calisanSayisi} + ' personel · ' + ${hizmetSayisi} + ' hizmet'"></p>
+                </div>
+                <button type="button" class="dugme dugme-ikincil" th:attr="data-diyalog-ac='diyalog-kurum-duzenle-' + ${kurum.id}">
+                    <svg th:replace="~{fragments/sablon :: ikon('kalem')}"></svg>Kurum bilgileri
+                </button>
+            </div>
+
+            <div th:unless="${kurum.aktif}" class="bildirim bildirim-uyari" role="status">
+                <svg th:replace="~{fragments/sablon :: ikon('uyari')}"></svg>
+                <span class="bildirim-metin">Kurumunuz şu an yayında değil: hastalar yeni randevu alamıyor. Mevcut randevular sürüyor.
+                    Yeniden yayına almak için sistem yöneticisiyle görüşün.</span>
+            </div>
+
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <section class="kart" aria-labelledby="bekleyen-baslik">
+                <div class="kart-baslik">
+                    <h2 id="bekleyen-baslik">Onay bekleyen talepler
+                        <span class="sekme-sayisi sayilar" th:text="${bekleyenSayisi}">0</span></h2>
+                    <a class="bolum-baglantisi" th:href="@{/yonetici/randevular}">Tüm randevular<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg></a>
+                </div>
+                <th:block th:if="${#lists.isEmpty(randevular)}">
+                    <div th:replace="~{fragments/sablon :: bosDurum('basari', 'Bekleyen talep yok', 'Yeni randevu talepleri geldiğinde burada onayınıza sunulur.')}"></div>
+                </th:block>
+                <ul role="list" class="randevu-listesi" th:unless="${#lists.isEmpty(randevular)}">
+                    <th:block th:each="r : ${randevular}"><li th:replace="~{fragments/sablon :: randevuSatiri(${r}, 'yonetici')}"></li></th:block>
+                </ul>
+            </section>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<dialog th:replace="~{fragments/sablon :: kurumDuzenleDiyalogu(${kurum}, @{/yonetici/kurum})}"></dialog>
+<dialog th:replace="~{fragments/sablon :: onayDiyalogu}"></dialog>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>

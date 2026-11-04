@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/sablon :: head('Şubeler')}"></head>
+<body>
+<div class="sayfa">
+    <th:block th:replace="~{fragments/sablon :: siteUst('subeler')}"></th:block>
+
+    <main class="ana" id="icerik">
+        <div class="ana-ic">
+            <div class="sayfa-baslik">
+                <div class="yigin-sik">
+                    <h1>Şubeler</h1>
+                    <p>Her şubenin çalışma saatleri ve bölümleri ayrı tanımlanır.</p>
+                </div>
+            </div>
+            <div th:replace="~{fragments/sablon :: mesajlar}"></div>
+
+            <div class="izgara izgara-yan">
+                <ul role="list" class="secenekler">
+                    <li th:each="s : ${subeler}">
+                        <a class="secenek" th:href="@{/yonetici/subeler/{id}(id=${s.id})}">
+                            <span class="secenek-ikon"><svg th:replace="~{fragments/sablon :: ikon('konum')}"></svg></span>
+                            <span class="secenek-metin">
+                                <span class="secenek-baslik" th:text="${s.ad}"></span>
+                                <span class="secenek-aciklama" th:text="${s.adres} ?: 'Adres girilmemiş'"></span>
+                                <span class="etiketler">
+                                    <span class="etiket-cip" th:text="${s.calismaSaatleri.size()} + ' gün açık'"></span>
+                                    <span class="etiket-cip" th:text="${s.bolumler.size()} + ' bölüm'"></span>
+                                    <span class="rozet rozet-uyari" th:if="${s.calismaSaatleri.isEmpty()}">Çalışma saati yok</span>
+                                </span>
+                            </span>
+                            <svg th:replace="~{fragments/sablon :: ikon('sag')}"></svg>
+                        </a>
+                    </li>
+                </ul>
+
+                <section class="kart" aria-labelledby="yeni-baslik">
+                    <div class="kart-baslik"><h2 id="yeni-baslik">Yeni şube</h2></div>
+                    <form th:action="@{/yonetici/subeler}" method="post" class="yigin">
+                        <div class="alan">
+                            <label class="etiket" for="ad">Şube adı</label>
+                            <input class="girdi" id="ad" name="ad" required>
+                        </div>
+                        <div class="alan">
+                            <label class="etiket" for="adres">Adres</label>
+                            <input class="girdi" id="adres" name="adres" autocomplete="street-address">
+                        </div>
+                        <div class="alan">
+                            <label class="etiket" for="telefon">Telefon</label>
+                            <input class="girdi" type="tel" id="telefon" name="telefon">
+                        </div>
+                        <button type="submit" class="dugme dugme-birincil"><svg th:replace="~{fragments/sablon :: ikon('arti')}"></svg>Şubeyi ekle</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/sablon :: genelAlt}"></footer>
+</div>
+<th:block th:replace="~{fragments/sablon :: scriptler}"></th:block>
+</body>
+</html>
