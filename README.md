@@ -10,6 +10,7 @@ gruplarını destekleyen, dört rollü bir online randevu sistemi.
 | Ders | Nesneye Dayalı Programlama Dilleri |
 | Dönem | 2026-2027 Güz |
 | Öğretim üyesi | Dr. Öğr. Üyesi Can Yüzkollar |
+| GitHub | [github.com/Ali-Kerem-Kol/NDP-Odev](https://github.com/Ali-Kerem-Kol/NDP-Odev) |
 
 **Teknolojiler:** Java 17 · Spring Boot 3.4 · Spring MVC + Thymeleaf · Spring Data JPA (Hibernate) ·
 Spring Security · H2 · JUnit 5
