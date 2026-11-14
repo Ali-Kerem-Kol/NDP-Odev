@@ -5,11 +5,11 @@ gruplarını destekleyen, dört rollü bir online randevu sistemi.
 
 | | |
 |---|---|
-| Öğrenci | _Ad Soyad_ |
-| Numara | _Öğrenci numarası_ |
+| Öğrenci | Ali Kerem Kol |
+| Numara | Y265012017 |
 | Ders | Nesneye Dayalı Programlama Dilleri |
 | Dönem | 2026-2027 Güz |
-| Öğretim üyesi | _Öğretim üyesinin adı_ |
+| Öğretim üyesi | Dr. Öğr. Üyesi Can Yüzkollar |
 
 **Teknolojiler:** Java 17 · Spring Boot 3.4 · Spring MVC + Thymeleaf · Spring Data JPA (Hibernate) ·
 Spring Security · H2 · JUnit 5
