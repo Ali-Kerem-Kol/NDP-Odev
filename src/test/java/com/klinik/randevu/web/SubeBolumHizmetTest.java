@@ -166,6 +166,60 @@ class SubeBolumHizmetTest {
                 .andExpect(content().string(containsString("<dt>Doktor</dt>")));
     }
 
+    @Test
+    void secilenSaatDolduysaHastaDoktorunTakvimineDoner() throws Exception {
+        Sube serdivan = sube("Serdivan Şubesi");
+        Hizmet genel = hizmet("Genel Muayene");
+        Calisan ayse = calisan("ayse.demir@sakaryasaglik.com.tr");
+        String onay = "/hasta/randevu-al/onay?calisanId=" + ayse.getId() + "&hizmetId=" + genel.getId()
+                + "&zaman=" + java.time.LocalDate.now().plusDays(30).with(java.time.DayOfWeek.MONDAY) + "T09:20";
+        String zaman = onay.substring(onay.indexOf("&zaman=") + 7);
+
+        // Saat başka bir sekmede alınır
+        mvc.perform(post("/hasta/randevu-al").with(user("18301661332").roles("HASTA")).with(csrf())
+                        .param("calisanId", ayse.getId().toString()).param("hizmetId", genel.getId().toString())
+                        .param("zaman", zaman))
+                .andExpect(redirectedUrl("/hasta"));
+
+        String takvim = "/hasta/randevu-al?kurumId=" + serdivan.getKurum().getId() + "&subeId=" + serdivan.getId()
+                + "&hizmetId=" + genel.getId() + "&calisanId=" + ayse.getId();
+        // Özet sayfası artık açılmaz; döngüye girmeden doktorun takvimine döner
+        mvc.perform(get(onay).with(user(HASTA).roles("HASTA")).header("Referer", "http://localhost" + onay))
+                .andExpect(redirectedUrl(takvim))
+                .andExpect(flash().attribute("hata", containsString("dolu")));
+        // Özet sayfasından yapılan gönderim de reddedilir ve aynı yere döner
+        mvc.perform(post("/hasta/randevu-al").with(user(HASTA).roles("HASTA")).with(csrf())
+                        .header("Referer", "http://localhost" + onay)
+                        .param("calisanId", ayse.getId().toString()).param("hizmetId", genel.getId().toString())
+                        .param("zaman", zaman))
+                .andExpect(redirectedUrl(onay));
+    }
+
+    @Test
+    void ayniAdreseGonderilenFormdakiHataAyniSayfadaGosterilir() throws Exception {
+        // Hizmetler sayfasındaki form yine /yonetici/hizmetler adresine gönderilir; hata panele atmamalı
+        mvc.perform(post("/yonetici/hizmetler").with(user(YONETICI).roles("YONETICI")).with(csrf())
+                        .header("Referer", "http://localhost/yonetici/hizmetler")
+                        .param("ad", "Hatalı").param("tur", "GENEL_MUAYENE").param("sureDakika", "30").param("ucret", "-5"))
+                .andExpect(redirectedUrl("/yonetici/hizmetler"))
+                .andExpect(flash().attribute("hata", "Hizmet ücreti negatif olamaz."));
+    }
+
+    @Test
+    void panelYonlendirmesiHataMesajiniKaybetmez() throws Exception {
+        mvc.perform(get("/panel").with(user(YONETICI).roles("YONETICI")).flashAttr("hata", "Örnek hata"))
+                .andExpect(redirectedUrl("/yonetici"))
+                .andExpect(flash().attribute("hata", "Örnek hata"));
+    }
+
+    @Test
+    void doktorBulunamazsaRandevuAlmaninIlkAdiminaDoner() throws Exception {
+        mvc.perform(get("/hasta/randevu-al/onay?calisanId=999999&hizmetId=1&zaman=2030-01-07T09:00")
+                        .with(user(HASTA).roles("HASTA"))
+                        .header("Referer", "http://localhost/hasta/randevu-al/onay?calisanId=999999&hizmetId=1&zaman=2030-01-07T09:00"))
+                .andExpect(redirectedUrl("/hasta/randevu-al"));
+    }
+
     private Sube sube(String ad) {
         return subeRepository.findAll().stream().filter(s -> s.getAd().equals(ad)).findFirst().orElseThrow();
     }

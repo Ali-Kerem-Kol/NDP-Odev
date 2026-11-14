@@ -1,5 +1,6 @@
 package com.klinik.randevu.web;
 
+import com.klinik.randevu.hata.IsKuraliIhlali;
 import com.klinik.randevu.model.kullanici.Calisan;
 import com.klinik.randevu.model.kullanici.Hasta;
 import com.klinik.randevu.model.kurum.Hizmet;
@@ -11,7 +12,6 @@ import com.klinik.randevu.servis.KurumServisi;
 import com.klinik.randevu.servis.OturumServisi;
 import com.klinik.randevu.servis.PersonelServisi;
 import com.klinik.randevu.servis.RandevuServisi;
-import com.klinik.randevu.servis.kural.RandevuTalebi;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -123,15 +124,41 @@ public class HastaController {
         return "hasta/randevu-al";
     }
 
-    /** Seçilen saatin özeti; hasta not ekleyip onaylar. Saat bu arada dolduysa geri döner. */
+    /**
+     * Seçilen saatin özeti; hasta not ekleyip onaylar. Saat bu arada dolduysa hasta aynı doktorun
+     * takvimine döner. Genel hata yakalayıcıya bırakılmaz: o, isteğin geldiği sayfaya döner ve
+     * gönderim bu sayfadan yapıldığı için aynı dolu saate tekrar tekrar yönlendirirdi.
+     */
     @GetMapping("/randevu-al/onay")
     public String onayEkrani(@RequestParam Long calisanId, @RequestParam Long hizmetId,
                              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime zaman,
-                             Model model) {
+                             Model model, RedirectAttributes yonlendirme) {
         Hasta hasta = oturumServisi.aktifKullanici(Hasta.class);
-        RandevuTalebi talep = randevuServisi.talebiDogrula(hasta, calisanId, hizmetId, zaman);
-        model.addAttribute("talep", talep);
-        return "hasta/randevu-onay";
+        try {
+            model.addAttribute("talep", randevuServisi.talebiDogrula(hasta, calisanId, hizmetId, zaman));
+            return "hasta/randevu-onay";
+        } catch (IsKuraliIhlali hata) {
+            yonlendirme.addFlashAttribute("hata", hata.getMessage());
+            return "redirect:" + takvimAdresi(calisanId, hizmetId);
+        }
+    }
+
+    /** Doktorun ve hizmetin seçili olduğu randevu alma adresi; doktor bulunamazsa ilk adım. */
+    private String takvimAdresi(Long calisanId, Long hizmetId) {
+        try {
+            Sube sube = personelServisi.calisanBul(calisanId).getSube();
+            if (sube == null) {
+                return "/hasta/randevu-al";
+            }
+            return UriComponentsBuilder.fromPath("/hasta/randevu-al")
+                    .queryParam("kurumId", sube.getKurum().getId())
+                    .queryParam("subeId", sube.getId())
+                    .queryParam("hizmetId", hizmetId)
+                    .queryParam("calisanId", calisanId)
+                    .toUriString();
+        } catch (IsKuraliIhlali bulunamadi) {
+            return "/hasta/randevu-al";
+        }
     }
 
     @PostMapping("/randevu-al")

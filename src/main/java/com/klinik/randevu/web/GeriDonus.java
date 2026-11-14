@@ -27,7 +27,13 @@ final class GeriDonus {
             if (yol == null || yol.isBlank() || !yol.startsWith("/")) {
                 return "/panel";
             }
-            return uri.getRawQuery() == null ? yol : yol + "?" + uri.getRawQuery();
+            String hedef = uri.getRawQuery() == null ? yol : yol + "?" + uri.getRawQuery();
+            // Hata veren sayfayı açmaya çalışırken (GET) aynı sayfaya dönmek sonsuz yönlendirme olurdu.
+            // Form gönderimi (POST) ise çoğu zaman bulunduğu sayfanın adresine yapılır; ona dokunulmaz.
+            String simdiki = istek.getQueryString() == null ? istek.getRequestURI()
+                    : istek.getRequestURI() + "?" + istek.getQueryString();
+            boolean kendineDonus = "GET".equalsIgnoreCase(istek.getMethod()) && hedef.equals(simdiki);
+            return kendineDonus ? "/panel" : hedef;
         } catch (IllegalArgumentException e) {
             return "/panel";
         }

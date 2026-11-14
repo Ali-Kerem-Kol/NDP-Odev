@@ -180,7 +180,7 @@ renk kontrastı WCAG 2.2 AA eşiklerini sağlar ve arayüzde emoji yerine SVG ik
 
 ## Testler
 
-`mvnw.cmd test` ile **123 test** çalışır:
+`mvnw.cmd test` ile **127 test** çalışır:
 
 | Test sınıfı | Sayı | Neyi sınar |
 |---|---|---|
@@ -195,7 +195,7 @@ renk kontrastı WCAG 2.2 AA eşiklerini sağlar ve arayüzde emoji yerine SVG ik
 | `GuvenlikTest` | 11 | Rol ve kayıt düzeyinde erişim denetimi |
 | `KotuyeKullanimTest` | 7 | Kaba kuvvet ve hesap taraması koruması |
 | `KurumYonetimiTest` | 9 | Kurum düzenleme, yayından kaldırma, silme, yönetici hesabı |
-| `SubeBolumHizmetTest` | 8 | Şube, bölüm, hizmet düzenleme/kaldırma ve doktor seçimi |
+| `SubeBolumHizmetTest` | 12 | Şube, bölüm, hizmet düzenleme/kaldırma, doktor seçimi, hata sonrası doğru sayfaya dönüş |
 | `PersonelVeKurumTest` | 11 | Personel düzenleme/pasifleştirme, kurum oluşturma |
 | `IcerikTest` | 11 | Ana sayfa, duyurular ve içerik yetkileri |
 | `SayfaRenderTest` | 6 | Her rolün her sayfasının hatasız çizilmesi |

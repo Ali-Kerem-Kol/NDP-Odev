@@ -37,13 +37,18 @@
                             <span th:text="${r.sube.tamAd} + (${r.sube.adres != null} ? ' · ' + ${r.sube.adres} : '')"></span></div>
                     </div>
                 </div>
-                <form th:if="${r.iptalEdilebilir and aktifKullanici.randevuyuIptalEdebilirMi(r)}"
-                      th:action="@{/randevu/{id}/iptal(id=${r.id})}" method="post"
-                      data-onay-baslik="Randevuyu iptal et" data-onay-metni="Bu işlem geri alınamaz. Saat başka hastalar için açılacak."
-                      data-onay-dugmesi="İptal et" data-onay-neden data-onay-tehlikeli>
-                    <input type="hidden" name="neden" value="">
-                    <button type="submit" class="dugme dugme-tehlike-cizgi">Randevuyu iptal et</button>
-                </form>
+                <div class="oncu-eylemleri">
+                    <a class="dugme dugme-ikincil" th:href="@{/randevu/{id}(id=${r.id})}">
+                        Ayrıntılar<svg th:replace="~{fragments/sablon :: ikonK('sag')}"></svg>
+                    </a>
+                    <form th:if="${r.iptalEdilebilir and aktifKullanici.randevuyuIptalEdebilirMi(r)}"
+                          th:action="@{/randevu/{id}/iptal(id=${r.id})}" method="post"
+                          data-onay-baslik="Randevuyu iptal et" data-onay-metni="Bu işlem geri alınamaz. Saat başka hastalar için açılacak."
+                          data-onay-dugmesi="İptal et" data-onay-neden data-onay-tehlikeli>
+                        <input type="hidden" name="neden" value="">
+                        <button type="submit" class="dugme dugme-tehlike-cizgi">Randevuyu iptal et</button>
+                    </form>
+                </div>
             </section>
 
             <section th:if="${siradaki == null}" class="oncu" aria-labelledby="bos-baslik">

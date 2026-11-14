@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +68,12 @@ public class AnaSayfaController {
 
     /** Her kullanıcı türü kendi paneline yönlendirilir (getPanelYolu çok biçimli). */
     @GetMapping("/panel")
-    public String panel() {
+    public String panel(HttpServletRequest istek, RedirectAttributes yonlendirme) {
+        // Buraya bir hata mesajıyla yönlendirildiyse mesaj ikinci yönlendirmede kaybolmasın
+        Map<String, ?> gelen = RequestContextUtils.getInputFlashMap(istek);
+        if (gelen != null) {
+            gelen.forEach(yonlendirme::addFlashAttribute);
+        }
         return "redirect:" + oturumServisi.aktifKullanici().getPanelYolu();
     }
 

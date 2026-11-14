@@ -943,6 +943,18 @@ textarea.girdi {
   display: contents;
 }
 
+/* Öncü karttaki eylemler: ayrıntı bağlantısı ve iptal yan yana, dar ekranda alt alta */
+.oncu-eylemleri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-2);
+}
+
+.oncu-eylemleri form {
+  display: contents;
+}
+
 /* ---------- Öncü kart (sayfanın ilk bakış noktası) ---------- */
 
 .oncu {
